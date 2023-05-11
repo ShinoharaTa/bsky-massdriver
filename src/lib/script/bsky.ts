@@ -2,7 +2,8 @@
 import { browser } from "$app/environment";
 import { goto } from "$app/navigation";
 
-import { BskyAgent, RichText, AtpSessionData } from "@atproto/api";
+import { BskyAgent, RichText } from "@atproto/api";
+import type { AtpSessionData } from "@atproto/api";
 import { setMessage } from "../../stores/MassDriver";
 
 let self: any;
