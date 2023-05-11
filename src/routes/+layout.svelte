@@ -1,6 +1,17 @@
 <script lang="ts">
   import LoadingOverlay from "../components/LoadingOverlay.svelte";
   import MessageOverlay from "../components/MessageOverlay.svelte";
+  import {
+    computePosition,
+    autoUpdate,
+    offset,
+    shift,
+    flip,
+    arrow,
+  } from "@floating-ui/dom";
+
+  import { storePopup } from "@skeletonlabs/skeleton";
+  storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
 
   // Your selected Skeleton theme:
   import "@skeletonlabs/skeleton/themes/theme-rocket.css";

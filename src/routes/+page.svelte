@@ -3,6 +3,8 @@
   import { hasSession, post } from "../lib/script/bsky";
   import { isLoading, urlQuery, message } from "../stores/MassDriver";
   import { page } from "$app/stores";
+  import UserField from "../components/UserField.svelte";
+  import { AppBar } from "@skeletonlabs/skeleton";
 
   let isLoaded: boolean = false;
   let text: string = "";
@@ -53,13 +55,14 @@
 
 {#if isLoaded}
   <!-- <h1>投稿フォーム</h1> -->
-  <h1 class="h1">Mass Driver</h1>
+  <div class="flex justify-between items-center">
+    <h1 class="h2">Mass Driver</h1>
+    <div>
+      <UserField />
+    </div>
+  </div>
   <div class="mt-4">
-    <textarea
-      class="textarea"
-      bind:value={text}
-      placeholder="What's up?"
-    />
+    <textarea class="textarea" bind:value={text} placeholder="What's up?" />
     <div class="flex justify-end">
       <button on:click={submitForm} class="btn variant-filled-primary"
         >Lift Off!</button
