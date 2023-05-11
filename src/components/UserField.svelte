@@ -40,11 +40,3 @@
   </div>
   <div class="arrow bg-surface-100-800-token" />
 </div>
-
-<style>
-  .textarea {
-    resize: none;
-    height: calc(100vh - 100px);
-    max-height: 300px;
-  }
-</style>

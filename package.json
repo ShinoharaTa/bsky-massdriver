@@ -1,6 +1,7 @@
 {
   "name": "massdriver",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "dev": "vite dev --host 0.0.0.0",
     "build": "vite build",
@@ -30,7 +31,6 @@
     "typescript": "^5.0.0",
     "vite": "^4.3.0"
   },
-  "type": "module",
   "dependencies": {
     "@atproto/api": "^0.2.11",
     "@floating-ui/dom": "^1.2.7",

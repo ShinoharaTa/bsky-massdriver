@@ -22,8 +22,6 @@
 
   // Finally, your application's global stylesheet (sometimes labeled 'app.css')
   import "../app.postcss";
-
-  import "../app.postcss";
 </script>
 
 <LoadingOverlay />
