@@ -16,7 +16,7 @@
     }
     const login = await hasSession();
     if (login) {
-      console.log("test")
+      console.log("test");
       if ($urlQuery !== "") {
         text = $urlQuery;
         $urlQuery = "";
@@ -42,25 +42,28 @@
         post(postText);
         text = "";
         $isLoading = false;
-        $message = "Post completed!"
+        $message = "Post completed!";
       } catch {
         $isLoading = false;
-        $message = "Post failed."
+        $message = "Post failed.";
       }
     }
   }
 </script>
 
 {#if isLoaded}
-  <div class="container">
-    <!-- <h1>投稿フォーム</h1> -->
+  <!-- <h1>投稿フォーム</h1> -->
+  <h1 class="h1">Mass Driver</h1>
+  <div class="mt-4">
     <textarea
       class="textarea"
       bind:value={text}
-      placeholder="ここに投稿内容を入力してください"
+      placeholder="What's up?"
     />
     <div class="flex justify-end">
-      <button on:click={submitForm} class="btn variant-filled-primary">投稿する</button>
+      <button on:click={submitForm} class="btn variant-filled-primary"
+        >Lift Off!</button
+      >
     </div>
   </div>
 {/if}
@@ -69,6 +72,6 @@
   .textarea {
     resize: none;
     height: calc(100vh - 100px);
-    max-height: 400px;
+    max-height: 300px;
   }
 </style>
