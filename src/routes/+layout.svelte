@@ -1,6 +1,7 @@
 <script lang="ts">
   import LoadingOverlay from "../components/LoadingOverlay.svelte";
   import MessageOverlay from "../components/MessageOverlay.svelte";
+  import FooterComponent from "../components/Footer.svelte";
   import {
     computePosition,
     autoUpdate,
@@ -26,6 +27,9 @@
 
 <LoadingOverlay />
 <MessageOverlay />
-<div class="container mx-auto p-4">
-  <slot />
+<div class="flex flex-col h-screen justify-between">
+  <div class="container mb-auto mx-auto p-4">
+    <slot />
+  </div>
+  <FooterComponent />
 </div>
