@@ -4,7 +4,7 @@
   import { isLoading, urlQuery, message } from "../stores/MassDriver";
   import { page } from "$app/stores";
   import UserField from "../components/UserField.svelte";
-  import { AppBar } from "@skeletonlabs/skeleton";
+  import { goto } from "$app/navigation";
 
   let isLoaded: boolean = false;
   let text: string = "";
@@ -23,6 +23,9 @@
         text = $urlQuery;
         $urlQuery = "";
       }
+      if (intent) {
+        goto("/")
+      }
       isLoaded = true;
     }
   });
@@ -37,7 +40,7 @@
   }
 
   function submitForm() {
-    let postText = trimPostContent(text);
+    const postText = trimPostContent(text);
     if (postText.length > 0) {
       $isLoading = true;
       try {
@@ -51,6 +54,14 @@
       }
     }
   }
+
+  function copyPostUrl() {
+    const postText = trimPostContent(text);
+    const uri = encodeURIComponent(postText);
+    const url = location.href
+    navigator.clipboard.writeText(url + "?intent=" + uri);
+    $message = "Copy to Clipboard.";
+  }
 </script>
 
 {#if isLoaded}
@@ -63,10 +74,20 @@
   </div>
   <div class="mt-4">
     <textarea class="textarea" bind:value={text} placeholder="What's up?" />
-    <div class="flex justify-end">
-      <button on:click={submitForm} class="btn variant-filled-primary"
-        >Lift Off!</button
-      >
+    <div class="flex justify-end items-center">
+      <div class="ps-3 pe-3">
+        {trimPostContent(text).length + "/" + 300}
+      </div>
+      <div class="ps-3">
+        <button on:click={copyPostUrl} class="btn variant-ringed-surface"
+          >Copy Post URL</button
+        >
+      </div>
+      <div class="ps-3">
+        <button on:click={submitForm} class="btn variant-filled-primary"
+          >Lift Off!</button
+        >
+      </div>
     </div>
   </div>
 {/if}
