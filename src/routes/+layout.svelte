@@ -27,9 +27,21 @@
 
 <LoadingOverlay />
 <MessageOverlay />
-<div class="flex flex-col h-screen justify-between">
-  <div class="container mb-auto mx-auto p-4">
+<div class="page">
+  <div class="page-content container mx-auto p-4">
     <slot />
   </div>
   <FooterComponent />
 </div>
+
+<style>
+.page {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+}
+</style>
