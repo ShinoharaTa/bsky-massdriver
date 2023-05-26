@@ -1,9 +1,9 @@
 <footer class="bg-surface-800 text-white p-3 flex justify-center">
   <div class="text-center">
     <div>
-      <!-- <a href="/about" class="px-3">
+      <a href="/information" class="px-3">
         How To
-      </a> -->
+      </a>
       <!-- <a href="/about" class="px-3">
         About
       </a> -->

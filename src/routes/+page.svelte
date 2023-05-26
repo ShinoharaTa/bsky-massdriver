@@ -67,8 +67,11 @@
 {#if isLoaded}
   <!-- <h1>投稿フォーム</h1> -->
   <div class="flex justify-between items-center">
-    <h1 class="h2">Mass Driver</h1>
-    <div>
+    <div class="flex justify-start items-center">
+      <img src="/massdriver-icon.svg" alt="" width="48px" class="me-3">
+      <h1 class="h1">Mass Driver</h1>
+    </div>
+      <div>
       <UserField />
     </div>
   </div>
