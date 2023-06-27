@@ -137,6 +137,8 @@
     {#each templateMessages as item}
       <TemplateMessage {item} {setText} {deleteTemplateItem} />
     {/each}
+    <div class="border-t border-gray-400 p-2">
+    </div>
   </div>
 {/if}
 

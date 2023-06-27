@@ -4,13 +4,15 @@
   export let setText: (text: string) => void;
 </script>
 
-<div class="flex justify-between items-center mt-2">
-  <button on:click={() => setText(item.text)}>{item.text}</button>
-  <button
-    on:click={() => deleteTemplateItem(item.key)}
-    class="btn variant-ringed-error text-error-600 btn-sm rounded-full"
-    >ー</button
-  >
+<div class="border-t border-gray-400 p-2">
+  <div class="flex justify-between items-center">
+    <button on:click={() => setText(item.text)}>{item.text}</button>
+    <button
+      on:click={() => deleteTemplateItem(item.key)}
+      class="btn variant-ringed-error text-error-600 btn-sm rounded-full"
+      >ー</button
+    >
+  </div>
 </div>
 
 <style>
