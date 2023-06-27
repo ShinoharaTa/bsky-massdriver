@@ -21,13 +21,20 @@
 </script>
 
 <div class="max-width mx-auto">
-  <h1 class="h1">Mass Driver</h1>
+  <div class="flex justify-start items-center">
+    <img src="/massdriver-icon.svg" alt="" width="36px" class="me-3" />
+    <h1 class="h1">Mass Driver</h1>
+  </div>
   <p class="mt-7">
     "Unleash your words into the vast expanse of the Bluesky universe with this
     powerful tool."
   </p>
   <p class="mt-3">
     このツールを使って、あなたの言葉を広大なBlueskyの宇宙へと解き放ちましょう。
+  </p>
+  <p class="mt-5 flex justify-center">
+    <a class="btn variant-ringed-surface me-3">Sign Up (Go to Bluesky)</a>
+    <a href="/information" class="btn variant-ringed-surface"> How To Use ? </a>
   </p>
   <form on:submit|preventDefault={handleLogin}>
     <div class="mt-10">
@@ -50,9 +57,7 @@
     </div>
     <p class="mt-3 text-error-600">{message}</p>
     <div class="flex justify-end">
-      <button class="btn variant-filled-primary"
-        >Login</button
-      >
+      <button class="btn variant-filled-primary">Login</button>
     </div>
   </form>
 </div>
