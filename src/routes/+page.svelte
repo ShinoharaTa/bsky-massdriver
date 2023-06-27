@@ -5,12 +5,25 @@
   import { page } from "$app/stores";
   import UserField from "../components/UserField.svelte";
   import { goto } from "$app/navigation";
+  import TemplateMessage from "../components/TemplateMessage.svelte";
+  import { v4 as uuidv4 } from "uuid";
 
   let isLoaded: boolean = false;
   let text: string = "";
 
+  let templateMessages: { key: string; text: string }[] = [];
+
+  function loadTemplateMessages() {
+    const storedTexts = localStorage.getItem("texts");
+    if (storedTexts) {
+      templateMessages = JSON.parse(storedTexts);
+    }
+    console.log(templateMessages);
+  }
+
   onMount(async () => {
     // $isLoading = true;
+    loadTemplateMessages();
     const intent = $page.url.searchParams.get("intent");
     if (intent) {
       text = intent;
@@ -24,7 +37,7 @@
         $urlQuery = "";
       }
       if (intent) {
-        goto("/")
+        goto("/");
       }
       isLoaded = true;
     }
@@ -58,9 +71,29 @@
   function copyPostUrl() {
     const postText = trimPostContent(text);
     const uri = encodeURIComponent(postText);
-    const url = location.href
+    const url = location.href;
     navigator.clipboard.writeText(url + "?intent=" + uri);
     $message = "Copy to Clipboard.";
+  }
+
+  function addTemplate() {
+    templateMessages = [
+      ...templateMessages,
+      {
+        key: uuidv4().replace(/-/g, "").substring(0, 16),
+        text: text,
+      },
+    ];
+    localStorage.setItem("texts", JSON.stringify(templateMessages));
+  }
+
+  function setText(setValue: string) {
+    text = setValue;
+  }
+
+  function deleteTemplateItem(key: string) {
+    templateMessages = templateMessages.filter((item) => item.key !== key);
+    localStorage.setItem("texts", JSON.stringify(templateMessages));
   }
 </script>
 
@@ -79,16 +112,28 @@
         {trimPostContent(text).length + "/" + 300}
       </div>
       <div class="ps-3">
-        <button on:click={copyPostUrl} class="btn variant-ringed-surface"
-          >Copy Post URL</button
-        >
-      </div>
-      <div class="ps-3">
         <button on:click={submitForm} class="btn variant-filled-primary"
           >Lift Off!</button
         >
       </div>
     </div>
+    <div class="flex justify-end items-center mt-4">
+      <div class="ps-3">
+        <button on:click={addTemplate} class="btn variant-ringed-surface btn-sm"
+          >Add Template</button
+        >
+      </div>
+      <div class="ps-3">
+        <button on:click={copyPostUrl} class="btn variant-ringed-surface btn-sm"
+          >Copy Post URL</button
+        >
+      </div>
+    </div>
+  </div>
+  <div class="mt-4">
+    {#each templateMessages as item}
+      <TemplateMessage {item} {setText} {deleteTemplateItem} />
+    {/each}
   </div>
 {/if}
 
@@ -96,6 +141,6 @@
   .textarea {
     resize: none;
     height: calc(100vh - 100px);
-    max-height: 300px;
+    max-height: 200px;
   }
 </style>

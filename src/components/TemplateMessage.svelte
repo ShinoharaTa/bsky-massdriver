@@ -1,0 +1,17 @@
+<script lang="ts">
+  export let item: { key: string; text: string };
+  export let deleteTemplateItem: (text: string) => void;
+  export let setText: (text: string) => void;
+</script>
+
+<div class="flex justify-between items-center mt-2">
+  <button on:click={() => setText(item.text)}>{item.text}</button>
+  <button
+    on:click={() => deleteTemplateItem(item.key)}
+    class="btn variant-ringed-error text-error-600 btn-sm rounded-full"
+    >ー</button
+  >
+</div>
+
+<style>
+</style>
