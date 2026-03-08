@@ -4,7 +4,7 @@
 
 {#if $isLoading}
   <div class="overlay">
-    <div class="loader" />
+    <div class="loader"></div>
   </div>
 {/if}
 
@@ -27,7 +27,7 @@
   .loader {
     border: 16px solid #f3f3f3;
     border-radius: 50%;
-    border-top: 16px solid rgb(var(--color-primary-500));
+    border-top: 16px solid #38bdf8;
     width: 120px;
     height: 120px;
     animation: spin 2s linear infinite;
