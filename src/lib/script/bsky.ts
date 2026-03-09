@@ -10,7 +10,7 @@ const LEGACY_SESSION_KEY = "sess";
 const ACCOUNTS_KEY = "accounts";
 const ACTIVE_ACCOUNT_KEY = "activeAccountId";
 export const BSKY_IMAGE_MAX_BYTES = 1_000_000;
-export const BSKY_IMAGE_MAX_DIMENSION = 1000;
+export const BSKY_IMAGE_MAX_DIMENSION = 2000;
 
 export type StoredAccount = {
   id: string;
@@ -23,6 +23,13 @@ export type MultiPostResult = {
   handle: string;
   success: boolean;
   error?: string;
+};
+
+export type PostImageInput = {
+  file: File;
+  width: number;
+  height: number;
+  alt?: string;
 };
 
 let currentAccountId: string | null = null;
@@ -252,7 +259,7 @@ export async function getProfileForAccount(accountId: string) {
   }
 }
 
-export async function post(text: string, imageFiles: File[] = []) {
+export async function post(text: string, imageFiles: PostImageInput[] = []) {
   const activeId = getActiveAccountId();
   if (!activeId) throw new Error("No active account");
   const results = await postToAccounts(text, [activeId], imageFiles);
@@ -283,7 +290,7 @@ export async function extractHashtagsFromRichText(text: string): Promise<string[
 export async function postToAccounts(
   text: string,
   accountIds: string[],
-  imageFiles: File[] = []
+  imageFiles: PostImageInput[] = []
 ): Promise<MultiPostResult[]> {
   const allAccounts = readAccounts();
   const targets = allAccounts.filter((account) => accountIds.includes(account.id));
@@ -304,7 +311,7 @@ export async function postToAccounts(
         };
         if (imageFiles.length > 0) {
           const images = await Promise.all(
-            imageFiles.slice(0, 4).map(async (file) => {
+            imageFiles.slice(0, 4).map(async ({ file, width, height, alt }) => {
               if (file.size > BSKY_IMAGE_MAX_BYTES) {
                 throw new Error(
                   `Image too large after preprocessing: ${file.name} (${Math.round(file.size / 1024)}KB)`
@@ -315,7 +322,8 @@ export async function postToAccounts(
                 encoding: file.type || "image/jpeg",
               });
               return {
-                alt: file.name || "",
+                alt: (alt ?? file.name) || "",
+                aspectRatio: { width, height },
                 image: uploaded.data.blob,
               };
             })

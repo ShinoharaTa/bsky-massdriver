@@ -14,6 +14,7 @@
     postToAccounts,
     setActiveAccount,
     type MultiPostResult,
+    type PostImageInput,
     type StoredAccount,
   } from "../lib/script/bsky";
   import { isLoading, message, urlQuery } from "../stores/MassDriver";
@@ -155,7 +156,18 @@
       const results = await postToAccounts(
         postText,
         selectedAccountIds,
-        attachments.flatMap((item) => (item.processedFile ? [item.processedFile] : []))
+        attachments.flatMap((item): PostImageInput[] =>
+          item.processedFile && item.width !== null && item.height !== null
+            ? [
+                {
+                  file: item.processedFile,
+                  width: item.width,
+                  height: item.height,
+                  alt: item.originalFile.name || "",
+                },
+              ]
+            : []
+        )
       );
       lastPostResults = results;
       saveHashtagHistory(hashtags);
