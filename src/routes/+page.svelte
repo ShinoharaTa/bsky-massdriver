@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onDestroy, onMount } from "svelte";
+  import { onDestroy, onMount, tick } from "svelte";
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { v4 as uuidv4 } from "uuid";
@@ -28,6 +28,7 @@
   let accountAvatars: Record<string, string | null> = {};
 
   let imageInput: HTMLInputElement | null = null;
+  let textareaElement: HTMLTextAreaElement | null = null;
   type AttachmentStatus = "processing" | "ready" | "error";
   type AttachmentItem = {
     id: string;
@@ -48,10 +49,17 @@
   let accounts: StoredAccount[] = [];
   let selectedAccountIds: string[] = [];
   let lastPostResults: MultiPostResult[] = [];
+  let hashtagHistory: string[] = [];
+  let cursorStart = 0;
+  let cursorEnd = 0;
 
   function loadTemplateMessages() {
     const storedTexts = localStorage.getItem("texts");
     if (storedTexts) templateMessages = JSON.parse(storedTexts);
+  }
+
+  function loadHashtagHistory() {
+    hashtagHistory = JSON.parse(localStorage.getItem("hashtagHistory") ?? "[]") as string[];
   }
 
   function loadAccounts() {
@@ -78,6 +86,7 @@
 
   onMount(async () => {
     loadTemplateMessages();
+    loadHashtagHistory();
     const intent = page.url.searchParams.get("intent");
     if (intent) {
       text = intent;
@@ -185,6 +194,12 @@
 
   function setText(setValue: string) {
     text = setValue;
+  }
+
+  function syncCursorFromTextarea() {
+    if (!textareaElement) return;
+    cursorStart = textareaElement.selectionStart ?? text.length;
+    cursorEnd = textareaElement.selectionEnd ?? text.length;
   }
 
   function deleteTemplateItem(key: string) {
@@ -298,8 +313,9 @@
   function saveHashtagHistory(tags: string[]) {
     if (!tags.length) return;
     const current = JSON.parse(localStorage.getItem("hashtagHistory") ?? "[]") as string[];
-    const merged = [...new Set([...current, ...tags])];
-    localStorage.setItem("hashtagHistory", JSON.stringify(merged));
+    const latestFirst = [...new Set([...tags.slice().reverse(), ...current])];
+    localStorage.setItem("hashtagHistory", JSON.stringify(latestFirst));
+    hashtagHistory = latestFirst;
   }
 
   onDestroy(() => clearAttachments());
@@ -311,9 +327,62 @@
     return "IMG";
   }
 
+  function sanitizeTag(tag: string) {
+    return tag.replace(/^#+/u, "").trim().toLowerCase();
+  }
+
+  function getActiveHashtagState(source: string, selectionStart: number, selectionEnd: number) {
+    const left = source.slice(0, selectionStart);
+    const right = source.slice(selectionEnd);
+    const match = left.match(/(^|\s)#([^\s#]*)$/u);
+    if (!match) {
+      return { query: null, start: -1, end: -1 };
+    }
+
+    const query = match[2].toLowerCase();
+    const start = selectionStart - query.length - 1;
+    const rightTokenLength = (right.match(/^[^\s#]*/u)?.[0] ?? "").length;
+    return {
+      query,
+      start,
+      end: selectionEnd + rightTokenLength,
+    };
+  }
+
+  function getSuggestedHashtags(history: string[]) {
+    return history.slice(0, 8);
+  }
+
+  async function insertHashtag(tag: string) {
+    const normalized = sanitizeTag(tag);
+    if (!normalized) return;
+
+    const active = getActiveHashtagState(text, cursorStart, cursorEnd);
+    let nextText = text;
+    let nextCursor = text.length;
+
+    if (active.query !== null && active.start >= 0) {
+      const replacement = `#${normalized} `;
+      nextText = `${text.slice(0, active.start)}${replacement}${text.slice(active.end)}`;
+      nextCursor = active.start + replacement.length;
+    } else {
+      const spacer = text.length === 0 || /\s$/u.test(text) ? "" : " ";
+      const addition = `${spacer}#${normalized} `;
+      nextText = `${text}${addition}`;
+      nextCursor = nextText.length;
+    }
+
+    text = nextText;
+    await tick();
+    textareaElement?.focus();
+    textareaElement?.setSelectionRange(nextCursor, nextCursor);
+    syncCursorFromTextarea();
+  }
+
   $: charCount = trimPostContent(text).length;
   $: hasProcessingAttachments = attachments.some((item) => item.status === "processing");
   $: hasErroredAttachments = attachments.some((item) => item.status === "error");
+  $: suggestedHashtags = getSuggestedHashtags(hashtagHistory);
 </script>
 
 {#if isLoaded}
@@ -376,9 +445,26 @@
       onchange={onSelectImages}
     />
     <textarea
+      bind:this={textareaElement}
       bind:value={text}
       placeholder="What's up?"
+      oninput={syncCursorFromTextarea}
+      onclick={syncCursorFromTextarea}
+      onkeyup={syncCursorFromTextarea}
+      onselect={syncCursorFromTextarea}
     ></textarea>
+
+    {#if hashtagHistory.length > 0}
+      <div class="hashtag-panel">
+        <div class="hashtag-list">
+          {#each suggestedHashtags as tag (tag)}
+            <button class="hashtag-chip" onclick={() => insertHashtag(tag)}>
+              #{tag}
+            </button>
+          {/each}
+        </div>
+      </div>
+    {/if}
 
     {#if attachments.length > 0}
       <div class="image-thumbs">
@@ -612,6 +698,28 @@
     gap: 6px;
     margin-top: 8px;
     flex-wrap: wrap;
+  }
+  .hashtag-panel {
+    margin-top: 8px;
+  }
+  .hashtag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .hashtag-chip {
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    border-radius: 999px;
+    background: rgba(56, 189, 248, 0.08);
+    color: var(--primary);
+    padding: 4px 10px;
+    font-size: 11px;
+    line-height: 1.2;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .hashtag-chip:hover {
+    background: rgba(56, 189, 248, 0.15);
   }
   .image-thumb-group {
     width: 72px;
