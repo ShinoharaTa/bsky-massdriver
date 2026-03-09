@@ -10,9 +10,11 @@
 
     <!-- ===== Mock Navigation Tabs ===== -->
     <nav class="page-tabs">
-      <button class="page-tab active" onclick="switchPage('post')">投稿</button>
-      <button class="page-tab" onclick="switchPage('login')">ログイン</button>
-      <button class="page-tab" onclick="switchPage('result')">結果</button>
+      <button class="page-tab active" data-page-target="post" onclick="switchPage('post')">投稿</button>
+      <button class="page-tab" data-page-target="notifications" onclick="switchPage('notifications')">通知</button>
+      <button class="page-tab" data-page-target="posts" onclick="switchPage('posts')">投稿管理</button>
+      <button class="page-tab" data-page-target="login" onclick="switchPage('login')">ログイン</button>
+      <button class="page-tab" data-page-target="result" onclick="switchPage('result')">結果</button>
     </nav>
 
     <!-- ═══════════════════════════════════════════
@@ -36,6 +38,12 @@
               <button class="btn-icon" title="Add account">+</button>
             </div>
           </header>
+
+          <nav class="app-page-nav">
+            <button class="app-page-link active" data-page-target="post" onclick="switchPage('post')">投稿</button>
+            <button class="app-page-link" data-page-target="notifications" onclick="switchPage('notifications')">通知</button>
+            <button class="app-page-link" data-page-target="posts" onclick="switchPage('posts')">投稿管理</button>
+          </nav>
 
           <!-- Account Selector (inline) -->
           <div class="account-bar">
@@ -116,7 +124,277 @@
     </div>
 
     <!-- ═══════════════════════════════════════════
-         PAGE B : ログイン画面 (/login)
+         PAGE B : 通知画面 (/notifications)
+         ═══════════════════════════════════════════ -->
+    <div id="page-notifications" class="page">
+      <div class="shell">
+        <main class="container">
+
+          <header class="header">
+            <div class="brand">
+              <img src="../static/massdriver-icon.svg" width="30" height="30" alt="Mass Driver" />
+              <h1>Mass Driver</h1>
+            </div>
+            <div class="header-right">
+              <div class="avatar-group">
+                <div class="avatar active" title="@alice.bsky.social"></div>
+                <div class="avatar" title="@bob.bsky.social"></div>
+              </div>
+              <button class="btn-icon" title="Add account">+</button>
+            </div>
+          </header>
+
+          <nav class="app-page-nav">
+            <button class="app-page-link" data-page-target="post" onclick="switchPage('post')">投稿</button>
+            <button class="app-page-link active" data-page-target="notifications" onclick="switchPage('notifications')">通知</button>
+            <button class="app-page-link" data-page-target="posts" onclick="switchPage('posts')">投稿管理</button>
+          </nav>
+
+          <section class="page-intro">
+            <h2>通知</h2>
+            <p>ログイン中の全アカウントに届いたリプ・メンション・リポスト・リアクションをまとめて確認できます。</p>
+          </section>
+
+          <div class="section-title">
+            <span>対象アカウント</span>
+            <span class="badge">2/2</span>
+          </div>
+          <div class="account-bar">
+            <label class="account-chip selected">
+              <span class="check">✓</span>
+              <span class="chip-handle">@alice.bsky.social</span>
+            </label>
+            <label class="account-chip selected">
+              <span class="check">✓</span>
+              <span class="chip-handle">@bob.bsky.social</span>
+            </label>
+          </div>
+
+          <div class="section-title">
+            <span>通知種別</span>
+            <span class="badge">4</span>
+          </div>
+          <div class="reason-filter-bar">
+            <button class="reason-chip selected">リプ</button>
+            <button class="reason-chip selected">メンション</button>
+            <button class="reason-chip selected">リポスト</button>
+            <button class="reason-chip selected">リアクション</button>
+            <button class="reason-chip">引用</button>
+            <button class="reason-chip">フォロー</button>
+          </div>
+
+          <section class="notification-list">
+            <article class="card notification-item unread">
+              <div class="notification-top">
+                <div class="notification-meta">
+                  <span class="notification-type">リプ</span>
+                  <span class="notification-account">@alice.bsky.social</span>
+                </div>
+                <span class="notification-time">3/10 09:42</span>
+              </div>
+              <div class="notification-body">
+                <div class="avatar notification-avatar"></div>
+                <div class="notification-content">
+                  <div class="notification-author-line">
+                    <strong>田中 太郎</strong>
+                    <span>@taro.bsky.social</span>
+                  </div>
+                  <p>参考になりました。チーム運用向けの通知一覧、かなり便利そうです。</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="card notification-item">
+              <div class="notification-top">
+                <div class="notification-meta">
+                  <span class="notification-type">メンション</span>
+                  <span class="notification-account">@bob.bsky.social</span>
+                </div>
+                <span class="notification-time">3/10 08:55</span>
+              </div>
+              <div class="notification-body">
+                <div class="avatar notification-avatar"></div>
+                <div class="notification-content">
+                  <div class="notification-author-line">
+                    <strong>Launch Team</strong>
+                    <span>@launch-team.bsky.social</span>
+                  </div>
+                  <p>@bob.bsky.social こちらの投稿をニュースレターに掲載してもよいですか？</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="card notification-item">
+              <div class="notification-top">
+                <div class="notification-meta">
+                  <span class="notification-type">リポスト</span>
+                  <span class="notification-account">@alice.bsky.social</span>
+                </div>
+                <span class="notification-time">3/10 08:10</span>
+              </div>
+              <div class="notification-body">
+                <div class="avatar notification-avatar"></div>
+                <div class="notification-content">
+                  <div class="notification-author-line">
+                    <strong>Dev News JP</strong>
+                    <span>@devnewsjp.bsky.social</span>
+                  </div>
+                  <p>投稿がリポストされました。朝のニュース枠で取り上げられています。</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="card notification-item">
+              <div class="notification-top">
+                <div class="notification-meta">
+                  <span class="notification-type">リアクション</span>
+                  <span class="notification-account">@bob.bsky.social</span>
+                </div>
+                <span class="notification-time">3/10 07:42</span>
+              </div>
+              <div class="notification-body">
+                <div class="avatar notification-avatar"></div>
+                <div class="notification-content">
+                  <div class="notification-author-line">
+                    <strong>Aya</strong>
+                    <span>@aya-design.bsky.social</span>
+                  </div>
+                  <p>投稿に 1 件のいいねが付きました。エンゲージメントが伸びています。</p>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <div class="list-actions">
+            <button class="btn btn-outline">もっと見る</button>
+          </div>
+
+        </main>
+
+        <footer class="footer">
+          <a href="#">How To</a>·<a href="#">GitHub</a>·<a href="#">Support</a>
+          <br />© 2023 T.Shinohara
+        </footer>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         PAGE C : 投稿管理画面 (/posts)
+         ═══════════════════════════════════════════ -->
+    <div id="page-posts" class="page">
+      <div class="shell">
+        <main class="container">
+
+          <header class="header">
+            <div class="brand">
+              <img src="../static/massdriver-icon.svg" width="30" height="30" alt="Mass Driver" />
+              <h1>Mass Driver</h1>
+            </div>
+            <div class="header-right">
+              <div class="avatar-group">
+                <div class="avatar active" title="@alice.bsky.social"></div>
+                <div class="avatar" title="@bob.bsky.social"></div>
+              </div>
+              <button class="btn-icon" title="Add account">+</button>
+            </div>
+          </header>
+
+          <nav class="app-page-nav">
+            <button class="app-page-link" data-page-target="post" onclick="switchPage('post')">投稿</button>
+            <button class="app-page-link" data-page-target="notifications" onclick="switchPage('notifications')">通知</button>
+            <button class="app-page-link active" data-page-target="posts" onclick="switchPage('posts')">投稿管理</button>
+          </nav>
+
+          <section class="page-intro">
+            <h2>投稿管理</h2>
+            <p>自分の投稿を横断表示し、リアクション数の確認と削除ができます。</p>
+          </section>
+
+          <div class="section-title">
+            <span>表示アカウント</span>
+            <span class="badge">2/2</span>
+          </div>
+          <div class="account-bar">
+            <label class="account-chip selected">
+              <span class="check">✓</span>
+              <span class="chip-handle">@alice.bsky.social</span>
+            </label>
+            <label class="account-chip selected">
+              <span class="check">✓</span>
+              <span class="chip-handle">@bob.bsky.social</span>
+            </label>
+          </div>
+
+          <section class="post-list">
+            <article class="card managed-post-item">
+              <div class="managed-post-head">
+                <div class="managed-post-meta">
+                  <span class="managed-post-account">@alice.bsky.social</span>
+                  <span class="managed-post-time">3/10 09:00</span>
+                  <span class="managed-post-badge">画像あり</span>
+                </div>
+                <button class="btn btn-danger btn-sm">削除</button>
+              </div>
+              <p class="managed-post-text">新機能をリリースしました。マルチアカウント運用の通知整理がかなり楽になります。</p>
+              <div class="managed-post-stats">
+                <span>いいね 24</span>
+                <span>リポスト 8</span>
+                <span>返信 5</span>
+                <span>引用 2</span>
+              </div>
+            </article>
+
+            <article class="card managed-post-item">
+              <div class="managed-post-head">
+                <div class="managed-post-meta">
+                  <span class="managed-post-account">@bob.bsky.social</span>
+                  <span class="managed-post-time">3/10 08:20</span>
+                  <span class="managed-post-badge">返信</span>
+                </div>
+                <button class="btn btn-danger btn-sm">削除</button>
+              </div>
+              <p class="managed-post-text">@someone ご紹介ありがとうございます。今週中に改善版を共有します。</p>
+              <div class="managed-post-stats">
+                <span>いいね 9</span>
+                <span>リポスト 1</span>
+                <span>返信 0</span>
+                <span>引用 0</span>
+              </div>
+            </article>
+
+            <article class="card managed-post-item">
+              <div class="managed-post-head">
+                <div class="managed-post-meta">
+                  <span class="managed-post-account">@alice.bsky.social</span>
+                  <span class="managed-post-time">3/9 22:14</span>
+                </div>
+                <button class="btn btn-danger btn-sm">削除</button>
+              </div>
+              <p class="managed-post-text">次回アップデートでは投稿管理ページも追加予定です。使い勝手の感想を募集しています。</p>
+              <div class="managed-post-stats">
+                <span>いいね 14</span>
+                <span>リポスト 3</span>
+                <span>返信 2</span>
+                <span>引用 1</span>
+              </div>
+            </article>
+          </section>
+
+          <div class="list-actions">
+            <button class="btn btn-outline">もっと見る</button>
+          </div>
+
+        </main>
+
+        <footer class="footer">
+          <a href="#">How To</a>·<a href="#">GitHub</a>·<a href="#">Support</a>
+          <br />© 2023 T.Shinohara
+        </footer>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         PAGE D : ログイン画面 (/login)
          ═══════════════════════════════════════════ -->
     <div id="page-login" class="page">
       <div class="shell">
@@ -182,7 +460,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════
-         PAGE C : 投稿結果モーダル
+         PAGE E : 投稿結果モーダル
          ═══════════════════════════════════════════ -->
     <div id="page-result" class="page">
       <div class="result-overlay">
@@ -214,8 +492,9 @@
       function switchPage(name) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.app-page-link').forEach(t => t.classList.remove('active'));
         document.getElementById('page-' + name).classList.add('active');
-        document.querySelector('[onclick*="' + name + '"]').classList.add('active');
+        document.querySelectorAll('[data-page-target="' + name + '"]').forEach(t => t.classList.add('active'));
       }
     </script>
 

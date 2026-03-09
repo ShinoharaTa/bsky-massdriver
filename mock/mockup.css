@@ -57,6 +57,33 @@ body {
 }
 .btn-icon:hover { border-color: var(--primary); color: var(--primary); }
 
+/* ── App Page Nav ── */
+.app-page-nav {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.app-page-link {
+  color: var(--muted);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--panel) 85%, white 15%);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
+}
+.app-page-link.active {
+  color: #0b1220;
+  border-color: var(--primary);
+  background: var(--primary);
+  font-weight: 700;
+}
+
 /* ── Account Bar (inline chips) ── */
 .account-bar {
   display: flex; flex-wrap: wrap; gap: 6px;
@@ -177,6 +204,164 @@ textarea::placeholder { color: var(--muted); }
   padding: 1px 7px; font-size: 10px; color: var(--muted);
 }
 
+/* ── Page Intro ── */
+.page-intro {
+  margin: 8px 0 2px;
+}
+.page-intro h2 {
+  font-size: 22px;
+  margin: 0;
+}
+.page-intro p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ── Reason Filters ── */
+.reason-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.reason-chip {
+  border: 1px solid var(--border);
+  background: var(--panel-soft);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.reason-chip.selected {
+  background: rgba(56,189,248,0.12);
+  border-color: var(--primary);
+  color: var(--text);
+}
+
+/* ── Notifications ── */
+.notification-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.notification-item {
+  display: grid;
+  gap: 10px;
+}
+.notification-item.unread {
+  border-color: color-mix(in srgb, var(--primary) 65%, var(--border) 35%);
+}
+.notification-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+.notification-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.notification-type {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b1220;
+  background: var(--primary);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.notification-account,
+.notification-time,
+.notification-author-line span {
+  color: var(--muted);
+  font-size: 12px;
+}
+.notification-body {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
+}
+.notification-avatar {
+  width: 36px;
+  height: 36px;
+}
+.notification-content {
+  min-width: 0;
+}
+.notification-author-line {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+.notification-content p {
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Managed Posts ── */
+.post-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.managed-post-item {
+  display: grid;
+  gap: 10px;
+}
+.managed-post-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.managed-post-meta {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.managed-post-account {
+  font-size: 12px;
+  font-weight: 700;
+}
+.managed-post-time {
+  color: var(--muted);
+  font-size: 12px;
+}
+.managed-post-badge {
+  border-radius: 999px;
+  padding: 2px 8px;
+  border: 1px solid var(--border-light);
+  color: var(--muted);
+  font-size: 11px;
+}
+.managed-post-text {
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.managed-post-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* ── List Actions ── */
+.list-actions {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 4px;
+}
+
 /* ── Template List ── */
 .template-list { display: grid; gap: 4px; }
 .template-item {
@@ -278,6 +463,8 @@ textarea::placeholder { color: var(--muted); }
   textarea { min-height: 80px; font-size: 14px; padding: 8px; }
   .composer-footer { flex-wrap: wrap; }
   .toolbar { gap: 4px; }
+  .managed-post-head,
+  .notification-top { flex-direction: column; align-items: flex-start; }
   .btn { padding: 5px 7px; font-size: 11px; }
   .btn-primary { padding: 5px 12px; }
   .image-thumb { width: 44px; height: 44px; }
