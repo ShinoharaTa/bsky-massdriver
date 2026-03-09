@@ -1,19 +1,62 @@
 <script lang="ts">
-  export let item: { key: string; text: string };
-  export let deleteTemplateItem: (text: string) => void;
-  export let setText: (text: string) => void;
+  let {
+    item,
+    setText,
+    deleteTemplateItem,
+  }: {
+    item: { key: string; text: string };
+    setText: (text: string) => void;
+    deleteTemplateItem: (key: string) => void;
+  } = $props();
 </script>
 
-<div class="border-t border-gray-400 p-2">
-  <div class="flex justify-between items-center">
-    <button on:click={() => setText(item.text)} class="truncate me-3">{item.text}</button>
-    <button
-      on:click={() => deleteTemplateItem(item.key)}
-      class="btn variant-ringed-error text-error-600 btn-sm rounded-full"
-      >ー</button
-    >
+<article class="template-item">
+  <button class="template-text" onclick={() => setText(item.text)}>{item.text}</button>
+  <div class="template-actions">
+    <button class="btn btn-ghost btn-sm" title="Use" onclick={() => setText(item.text)}>↩</button>
+    <button class="btn btn-danger btn-sm" onclick={() => deleteTemplateItem(item.key)}>×</button>
   </div>
-</div>
+</article>
 
 <style>
+  .template-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    background: rgba(15, 23, 42, 0.4);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .template-item:hover {
+    border-color: var(--border-light);
+    background: var(--panel-soft);
+  }
+  .template-text {
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    font-size: 13px;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+  }
+  .template-actions {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+    margin-left: 6px;
+  }
+
+  @media (max-width: 480px) {
+    .template-item { padding: 6px 8px; }
+    .template-text { font-size: 12px; }
+  }
 </style>

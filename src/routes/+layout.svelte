@@ -2,46 +2,18 @@
   import LoadingOverlay from "../components/LoadingOverlay.svelte";
   import MessageOverlay from "../components/MessageOverlay.svelte";
   import FooterComponent from "../components/Footer.svelte";
-  import {
-    computePosition,
-    autoUpdate,
-    offset,
-    shift,
-    flip,
-    arrow,
-  } from "@floating-ui/dom";
+  import type { Snippet } from "svelte";
 
-  import { storePopup } from "@skeletonlabs/skeleton";
-  storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow });
+  import "../app.css";
 
-  // Your selected Skeleton theme:
-  import "@skeletonlabs/skeleton/themes/theme-rocket.css";
-
-  // This contains the bulk of Skeletons required styles:
-  // NOTE: this will be renamed skeleton.css in the v2.x release.
-  import "@skeletonlabs/skeleton/styles/skeleton.css";
-
-  // Finally, your application's global stylesheet (sometimes labeled 'app.css')
-  import "../app.postcss";
+  let { children }: { children: Snippet } = $props();
 </script>
 
 <LoadingOverlay />
 <MessageOverlay />
-<div class="page">
-  <div class="page-content container mx-auto p-4">
-    <slot />
-  </div>
+<div class="shell">
+  <main class="container-app">
+    {@render children()}
+  </main>
   <FooterComponent />
 </div>
-
-<style>
-.page {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
-}
-
-.page-content {
-  flex: 1;
-}
-</style>

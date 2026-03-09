@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mass Driver — Mockup</title>
+    <link rel="stylesheet" href="./mockup.css" />
+  </head>
+  <body>
+
+    <!-- ===== Mock Navigation Tabs ===== -->
+    <nav class="page-tabs">
+      <button class="page-tab active" onclick="switchPage('post')">投稿</button>
+      <button class="page-tab" onclick="switchPage('login')">ログイン</button>
+      <button class="page-tab" onclick="switchPage('result')">結果</button>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════
+         PAGE A : 投稿画面 (/)
+         ═══════════════════════════════════════════ -->
+    <div id="page-post" class="page active">
+      <div class="shell">
+        <main class="container">
+
+          <!-- Header -->
+          <header class="header">
+            <div class="brand">
+              <img src="../static/massdriver-icon.svg" width="30" height="30" alt="Mass Driver" />
+              <h1>Mass Driver</h1>
+            </div>
+            <div class="header-right">
+              <div class="avatar-group">
+                <div class="avatar active" title="@alice.bsky.social"></div>
+                <div class="avatar" title="@bob.bsky.social"></div>
+              </div>
+              <button class="btn-icon" title="Add account">+</button>
+            </div>
+          </header>
+
+          <!-- Account Selector (inline) -->
+          <div class="account-bar">
+            <label class="account-chip selected">
+              <span class="check">✓</span>
+              <span class="chip-handle">@alice.bsky.social</span>
+            </label>
+            <label class="account-chip selected">
+              <span class="check">✓</span>
+              <span class="chip-handle">@bob.bsky.social</span>
+            </label>
+          </div>
+
+          <!-- Composer Card -->
+          <section class="card composer">
+            <textarea placeholder="What's up?"></textarea>
+
+            <!-- Image Thumbs (visible only when images attached) -->
+            <div class="image-thumbs">
+              <div class="image-thumb">
+                <div class="image-thumb-placeholder"></div>
+                <button class="image-thumb-remove">×</button>
+              </div>
+              <div class="image-thumb">
+                <div class="image-thumb-placeholder"></div>
+                <button class="image-thumb-remove">×</button>
+              </div>
+            </div>
+
+            <!-- Action bar: char count | tools | post -->
+            <div class="composer-footer">
+              <span class="char-count">42 / 300</span>
+              <div class="toolbar">
+                <button class="btn btn-outline btn-sm" title="Save as template">+ Template</button>
+                <button class="btn btn-outline btn-sm" title="Copy share URL">Copy URL</button>
+                <button class="btn btn-outline btn-sm btn-attach" title="Add images (max 4)">🖼 Image</button>
+                <button class="btn btn-primary">Lift Off!</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Templates -->
+          <div class="section-title">
+            <span>Templates</span>
+            <span class="badge">3</span>
+          </div>
+          <section class="template-list">
+            <article class="template-item">
+              <div class="template-text">Use Mass Driver! share it! https://mdrv.shino3.net</div>
+              <div class="template-actions">
+                <button class="btn btn-ghost btn-sm" title="Use">↩</button>
+                <button class="btn btn-danger btn-sm">×</button>
+              </div>
+            </article>
+            <article class="template-item">
+              <div class="template-text">@someone Thank you for your post!</div>
+              <div class="template-actions">
+                <button class="btn btn-ghost btn-sm" title="Use">↩</button>
+                <button class="btn btn-danger btn-sm">×</button>
+              </div>
+            </article>
+            <article class="template-item">
+              <div class="template-text">リリースしました。フィードバックお願いします。</div>
+              <div class="template-actions">
+                <button class="btn btn-ghost btn-sm" title="Use">↩</button>
+                <button class="btn btn-danger btn-sm">×</button>
+              </div>
+            </article>
+          </section>
+
+        </main>
+
+        <footer class="footer">
+          <a href="#">How To</a>·<a href="#">GitHub</a>·<a href="#">Support</a>
+          <br />© 2023 T.Shinohara
+        </footer>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         PAGE B : ログイン画面 (/login)
+         ═══════════════════════════════════════════ -->
+    <div id="page-login" class="page">
+      <div class="shell">
+        <main class="container login-wrapper">
+
+          <div class="brand" style="justify-content:center; padding-top:20px;">
+            <img src="../static/massdriver-icon.svg" width="44" height="44" alt="Mass Driver" />
+            <h1>Mass Driver</h1>
+          </div>
+          <p class="login-tagline" style="text-align:center;">
+            Bluesky に、もっとスムーズに投稿する。<br />
+            複数アカウント対応のクイックポストツール。
+          </p>
+
+          <!-- Existing Accounts -->
+          <section class="existing-accounts">
+            <div class="section-title">保存済みアカウント</div>
+            <div class="existing-account-item">
+              <div class="avatar" style="width:32px;height:32px"></div>
+              <div class="existing-account-info">
+                <div class="existing-account-handle">@alice.bsky.social</div>
+                <div class="existing-account-status">ログイン中</div>
+              </div>
+              <button class="btn btn-ghost btn-sm">切替</button>
+            </div>
+            <div class="existing-account-item">
+              <div class="avatar" style="width:32px;height:32px"></div>
+              <div class="existing-account-info">
+                <div class="existing-account-handle">@bob.bsky.social</div>
+                <div class="existing-account-status expired">セッション期限切れ</div>
+              </div>
+              <button class="btn btn-outline btn-sm">再ログイン</button>
+            </div>
+          </section>
+
+          <!-- New Account Login -->
+          <section class="card login-card">
+            <div class="section-title" style="margin-top:0">新しいアカウントを追加</div>
+            <div class="form-group">
+              <label for="handle">Handle</label>
+              <input class="form-input" id="handle" placeholder="you.bsky.social" />
+            </div>
+            <div class="form-group">
+              <label for="password">App Password</label>
+              <input class="form-input" id="password" type="password" placeholder="xxxx-xxxx-xxxx-xxxx" />
+            </div>
+            <div class="login-actions">
+              <div class="login-links">
+                <a href="#">Sign Up</a>
+                <a href="#">How To</a>
+              </div>
+              <button class="btn btn-primary">Login</button>
+            </div>
+          </section>
+
+        </main>
+
+        <footer class="footer">
+          <a href="#">How To</a>·<a href="#">GitHub</a>·<a href="#">Support</a>
+          <br />© 2023 T.Shinohara
+        </footer>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         PAGE C : 投稿結果モーダル
+         ═══════════════════════════════════════════ -->
+    <div id="page-result" class="page">
+      <div class="result-overlay">
+        <section class="card result-card">
+          <h2>投稿結果</h2>
+          <div class="result-item">
+            <div class="avatar" style="width:28px;height:28px"></div>
+            <span>@alice.bsky.social</span>
+            <span class="result-status ok">✓ 成功</span>
+          </div>
+          <div class="result-item">
+            <div class="avatar" style="width:28px;height:28px"></div>
+            <span>@bob.bsky.social</span>
+            <span class="result-status fail">✗ 失敗</span>
+          </div>
+          <p style="margin-top:12px; font-size:13px; color:var(--muted);">
+            1 件のアカウントでエラーが発生しました。再試行できます。
+          </p>
+          <div class="result-close">
+            <button class="btn btn-outline btn-sm" style="margin-right:6px">再試行</button>
+            <button class="btn btn-primary btn-sm">OK</button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===== Page Switcher Script ===== -->
+    <script>
+      function switchPage(name) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('page-' + name).classList.add('active');
+        document.querySelector('[onclick*="' + name + '"]').classList.add('active');
+      }
+    </script>
+
+  </body>
+</html>
