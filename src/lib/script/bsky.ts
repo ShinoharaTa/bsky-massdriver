@@ -2,7 +2,7 @@ import { browser } from "$app/environment";
 import { goto } from "$app/navigation";
 
 import { AtpAgent, RichText } from "@atproto/api";
-import type { AtpSessionData } from "@atproto/api";
+import type { AtpPersistSessionHandler, AtpSessionData } from "@atproto/api";
 import { setMessage } from "../../stores/MassDriver";
 
 const SERVICE = "https://bsky.social";
@@ -27,7 +27,47 @@ export type MultiPostResult = {
 
 let currentAccountId: string | null = null;
 let currentHandle = "";
-const activeAgent = new AtpAgent({ service: SERVICE });
+
+function updateStoredAccountSession(accountId: string, session: AtpSessionData): void {
+  const accounts = readAccounts();
+  const index = accounts.findIndex((account) => account.id === accountId);
+  if (index === -1) return;
+
+  const updatedAccount: StoredAccount = {
+    ...accounts[index],
+    handle: session.handle ?? accounts[index].handle,
+    session,
+  };
+  accounts[index] = updatedAccount;
+  writeAccounts(accounts);
+
+  if (currentAccountId === updatedAccount.id) {
+    setCurrentAccount(updatedAccount);
+  }
+}
+
+function createPersistSessionHandler(getAccountId: () => string | null): AtpPersistSessionHandler {
+  return (evt, session) => {
+    if (!browser) return;
+
+    if (evt === "create" || evt === "update") {
+      if (!session) return;
+      const accountId = getAccountId() ?? session.did;
+      updateStoredAccountSession(accountId, session);
+      return;
+    }
+
+    if (evt === "expired") {
+      const accountId = getAccountId();
+      if (accountId) removeStoredAccount(accountId);
+    }
+  };
+}
+
+const activeAgent = new AtpAgent({
+  service: SERVICE,
+  persistSession: createPersistSessionHandler(() => currentAccountId),
+});
 
 function readAccounts(): StoredAccount[] {
   if (!browser) return [];
@@ -54,9 +94,12 @@ function setCurrentAccount(account: StoredAccount | null) {
   currentHandle = account?.handle ?? "";
 }
 
-function createAgentForSession(session: AtpSessionData) {
-  const agent = new AtpAgent({ service: SERVICE });
-  return { agent, resume: () => agent.resumeSession(session) };
+function createAgentForSession(account: StoredAccount) {
+  const agent = new AtpAgent({
+    service: SERVICE,
+    persistSession: createPersistSessionHandler(() => account.id),
+  });
+  return { agent, resume: () => agent.resumeSession(account.session) };
 }
 
 function migrateLegacySession() {
@@ -115,7 +158,7 @@ export async function login(username: string, password: string): Promise<void> {
   const loginAgent = new AtpAgent({
     service: SERVICE,
     persistSession: (_evt, sess) => {
-      persistedSession = sess;
+      persistedSession = sess ?? null;
     },
   });
 
@@ -200,7 +243,7 @@ export async function getProfileForAccount(accountId: string) {
   if (!account) return null;
 
   try {
-    const { agent, resume } = createAgentForSession(account.session);
+    const { agent, resume } = createAgentForSession(account);
     await resume();
     const { data } = await agent.getProfile({ actor: account.handle });
     return data;
@@ -248,13 +291,17 @@ export async function postToAccounts(
   const results = await Promise.all(
     targets.map(async (account): Promise<MultiPostResult> => {
       try {
-        const { agent, resume } = createAgentForSession(account.session);
+        const { agent, resume } = createAgentForSession(account);
         await resume();
 
         const rt = new RichText({ text });
         await rt.detectFacets(agent);
 
-        let embed: Record<string, unknown> | undefined;
+        const postPayload: Parameters<typeof agent.post>[0] = {
+          $type: "app.bsky.feed.post",
+          text: rt.text,
+          facets: rt.facets,
+        };
         if (imageFiles.length > 0) {
           const images = await Promise.all(
             imageFiles.slice(0, 4).map(async (file) => {
@@ -273,18 +320,13 @@ export async function postToAccounts(
               };
             })
           );
-          embed = {
+          postPayload.embed = {
             $type: "app.bsky.embed.images",
             images,
           };
         }
 
-        await agent.post({
-          $type: "app.bsky.feed.post",
-          text: rt.text,
-          facets: rt.facets,
-          ...(embed ? { embed } : {}),
-        });
+        await agent.post(postPayload);
 
         return { accountId: account.id, handle: account.handle, success: true };
       } catch (error) {
