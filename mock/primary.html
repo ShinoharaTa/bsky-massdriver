@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mass Driver — 一般ユーザー向け主案</title>
+    <link rel="stylesheet" href="./shared.css" />
+    <style>
+      .page { display: none; }
+      .page.active { display: block; }
+
+      .app-main { position: relative; }
+      .app-page { margin: 0 auto; }
+
+      .mock-state-tabs {
+        position: fixed; top: 12px; right: 12px;
+        display: flex; gap: 3px; background: var(--panel);
+        border: 1px solid var(--border); border-radius: var(--radius-sm);
+        padding: 3px; z-index: 200; font-size: 11px;
+      }
+      .mock-state-tab {
+        padding: 4px 10px; border-radius: 4px; border: none;
+        background: transparent; color: var(--muted);
+        cursor: pointer; font-size: 11px; font-family: inherit;
+      }
+      .mock-state-tab:hover { color: var(--text); }
+      .mock-state-tab.active { background: var(--primary); color: #0b1220; font-weight: 600; }
+
+      @media (max-width: 767px) {
+        .mock-state-tabs { top: auto; bottom: 64px; right: 8px; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="app">
+
+      <!-- ══════════════════════════════════════════════
+           Desktop Sidebar
+           ══════════════════════════════════════════════ -->
+      <aside class="app-sidebar">
+        <div class="brand">
+          <img src="../static/massdriver-icon.svg" width="24" height="24" alt="Mass Driver" />
+          <h1>Mass Driver</h1>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button class="sidebar-nav-item active" onclick="switchPage('post')">
+            <span class="sidebar-nav-icon">✏️</span> 投稿
+          </button>
+          <button class="sidebar-nav-item" onclick="switchPage('notifications')">
+            <span class="sidebar-nav-icon">🔔</span> 通知
+          </button>
+          <button class="sidebar-nav-item" onclick="switchPage('posts')">
+            <span class="sidebar-nav-icon">📋</span> 投稿管理
+          </button>
+          <button class="sidebar-nav-item" onclick="switchPage('account')">
+            <span class="sidebar-nav-icon">👤</span> アカウント
+          </button>
+        </nav>
+
+        <div class="sidebar-accounts">
+          <div class="sidebar-account-item active-account">
+            <div class="avatar active"></div>
+            <span>@alice</span>
+          </div>
+          <div class="sidebar-account-item">
+            <div class="avatar"></div>
+            <span>@bob</span>
+          </div>
+          <button class="sidebar-account-add">
+            <span>+</span>
+            <span>アカウント追加</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- ══════════════════════════════════════════════
+           Main Content
+           ══════════════════════════════════════════════ -->
+      <div class="app-main">
+
+        <!-- Mobile Top Bar -->
+        <div class="app-topbar">
+          <div class="brand">
+            <img src="../static/massdriver-icon.svg" width="24" height="24" alt="Mass Driver" style="border-radius:6px" />
+            <h1>Mass Driver</h1>
+          </div>
+          <div class="avatar-group">
+            <div class="avatar active"></div>
+            <div class="avatar"></div>
+          </div>
+        </div>
+
+        <!-- ─────── PAGE: 投稿 ─────── -->
+        <div id="page-post" class="page active">
+          <div class="app-page">
+
+            <div class="account-bar">
+              <label class="account-chip selected">
+                <span class="check">✓</span>
+                <span class="chip-handle">@alice</span>
+              </label>
+              <label class="account-chip selected">
+                <span class="check">✓</span>
+                <span class="chip-handle">@bob</span>
+              </label>
+            </div>
+
+            <div class="composer card">
+              <textarea placeholder="What's up?"></textarea>
+              <div class="image-thumbs">
+                <div class="image-thumb">
+                  <div class="image-thumb-placeholder"></div>
+                  <button class="image-thumb-remove">&times;</button>
+                </div>
+              </div>
+              <div class="composer-footer">
+                <span class="char-count">42 / 300</span>
+                <div class="toolbar">
+                  <button class="btn btn-outline btn-sm btn-attach">🖼 画像</button>
+                  <button class="btn btn-primary">Lift Off!</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-title">テンプレート <span class="badge">3</span></div>
+            <div class="template-list">
+              <div class="template-item">
+                <span class="template-text">Use Mass Driver! share it! https://mdrv.shino3.net</span>
+                <div class="template-actions">
+                  <button class="btn btn-ghost btn-sm">挿入</button>
+                </div>
+              </div>
+              <div class="template-item">
+                <span class="template-text">@someone Thank you for your post!</span>
+                <div class="template-actions">
+                  <button class="btn btn-ghost btn-sm">挿入</button>
+                </div>
+              </div>
+              <div class="template-item">
+                <span class="template-text">リリースしました。フィードバックお願いします。</span>
+                <div class="template-actions">
+                  <button class="btn btn-ghost btn-sm">挿入</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ─────── PAGE: 通知 ─────── -->
+        <div id="page-notifications" class="page">
+          <div class="app-page">
+
+            <div class="page-intro">
+              <h2>通知</h2>
+              <p>全アカウントに届いた通知をまとめて確認。</p>
+            </div>
+
+            <div class="account-bar">
+              <label class="account-chip selected">
+                <span class="check">✓</span>
+                <span class="chip-handle">@alice</span>
+              </label>
+              <label class="account-chip selected">
+                <span class="check">✓</span>
+                <span class="chip-handle">@bob</span>
+              </label>
+            </div>
+
+            <div class="reason-filter-bar">
+              <button class="reason-chip selected">すべて</button>
+              <button class="reason-chip">リプライ</button>
+              <button class="reason-chip">メンション</button>
+              <button class="reason-chip">リポスト</button>
+              <button class="reason-chip">リアクション</button>
+            </div>
+
+            <div class="notification-list">
+
+              <div class="card notification-item unread">
+                <div class="notification-top">
+                  <div class="notification-meta">
+                    <span class="notification-type">リプライ</span>
+                    <span class="notification-account">@alice</span>
+                  </div>
+                  <span class="notification-time">3/10 09:42</span>
+                </div>
+                <div class="notification-body">
+                  <div class="avatar notification-avatar"></div>
+                  <div class="notification-content">
+                    <div class="notification-author-line">
+                      <strong>田中太郎</strong>
+                      <span>@taro</span>
+                    </div>
+                    <p>参考になりました。通知一覧、かなり便利そうです。</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card notification-item">
+                <div class="notification-top">
+                  <div class="notification-meta">
+                    <span class="notification-type">メンション</span>
+                    <span class="notification-account">@bob</span>
+                  </div>
+                  <span class="notification-time">3/10 08:55</span>
+                </div>
+                <div class="notification-body">
+                  <div class="avatar notification-avatar"></div>
+                  <div class="notification-content">
+                    <div class="notification-author-line">
+                      <strong>Launch Team</strong>
+                      <span>@launch-team</span>
+                    </div>
+                    <p>@bob.bsky.social こちらの投稿をニュースレターに掲載してもよいですか？</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card notification-item">
+                <div class="notification-top">
+                  <div class="notification-meta">
+                    <span class="notification-type">リポスト</span>
+                    <span class="notification-account">@alice</span>
+                  </div>
+                  <span class="notification-time">3/10 08:10</span>
+                </div>
+                <div class="notification-body">
+                  <div class="avatar notification-avatar"></div>
+                  <div class="notification-content">
+                    <div class="notification-author-line">
+                      <strong>Dev News JP</strong>
+                      <span>@devnewsjp</span>
+                    </div>
+                    <p>投稿がリポストされました。</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card notification-item">
+                <div class="notification-top">
+                  <div class="notification-meta">
+                    <span class="notification-type">リアクション</span>
+                    <span class="notification-account">@bob</span>
+                  </div>
+                  <span class="notification-time">3/10 07:42</span>
+                </div>
+                <div class="notification-body">
+                  <div class="avatar notification-avatar"></div>
+                  <div class="notification-content">
+                    <div class="notification-author-line">
+                      <strong>Aya</strong>
+                      <span>@aya-design</span>
+                    </div>
+                    <p>投稿に1件のいいねが付きました。</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="list-actions">
+              <button class="btn btn-outline">もっと見る</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ─────── PAGE: 投稿管理 ─────── -->
+        <div id="page-posts" class="page">
+          <div class="app-page">
+
+            <div class="page-intro">
+              <h2>投稿管理</h2>
+              <p>過去の投稿をまとめて確認・削除。</p>
+            </div>
+
+            <div class="account-bar">
+              <label class="account-chip selected">
+                <span class="check">✓</span>
+                <span class="chip-handle">@alice</span>
+              </label>
+              <label class="account-chip selected">
+                <span class="check">✓</span>
+                <span class="chip-handle">@bob</span>
+              </label>
+            </div>
+
+            <div class="post-list">
+
+              <div class="card managed-post-item">
+                <div class="managed-post-head">
+                  <div class="managed-post-meta">
+                    <span class="managed-post-account">@alice</span>
+                    <span class="managed-post-time">3/10 09:00</span>
+                    <span class="managed-post-badge">画像あり</span>
+                  </div>
+                  <div>
+                    <button class="btn btn-ghost btn-sm">削除</button>
+                  </div>
+                </div>
+                <p class="managed-post-text">新機能をリリースしました。マルチアカウント対応の通知整理がかなり楽になります。</p>
+                <div class="managed-post-stats">
+                  <span>❤ 24</span><span>🔁 8</span><span>💬 5</span>
+                </div>
+              </div>
+
+              <div class="card managed-post-item">
+                <div class="managed-post-head">
+                  <div class="managed-post-meta">
+                    <span class="managed-post-account">@bob</span>
+                    <span class="managed-post-time">3/10 08:20</span>
+                    <span class="managed-post-badge">返信</span>
+                  </div>
+                  <div>
+                    <button class="btn btn-ghost btn-sm">削除</button>
+                  </div>
+                </div>
+                <p class="managed-post-text">@someone ご紹介ありがとうございます。今週中に改善版を共有します。</p>
+                <div class="managed-post-stats">
+                  <span>❤ 9</span><span>🔁 1</span><span>💬 0</span>
+                </div>
+              </div>
+
+              <div class="card managed-post-item">
+                <div class="managed-post-head">
+                  <div class="managed-post-meta">
+                    <span class="managed-post-account">@alice</span>
+                    <span class="managed-post-time">3/9 22:14</span>
+                  </div>
+                  <div>
+                    <button class="btn btn-ghost btn-sm">削除</button>
+                  </div>
+                </div>
+                <p class="managed-post-text">次回アップデートでは投稿管理ページも追加予定です。</p>
+                <div class="managed-post-stats">
+                  <span>❤ 14</span><span>🔁 3</span><span>💬 2</span>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="list-actions">
+              <button class="btn btn-outline">もっと見る</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ─────── PAGE: アカウント ─────── -->
+        <div id="page-account" class="page">
+          <div class="app-page">
+
+            <div class="page-intro">
+              <h2>アカウント</h2>
+              <p>ログイン中のアカウントを管理。</p>
+            </div>
+
+            <div class="section-title">登録済みアカウント</div>
+
+            <div class="existing-account-item" style="margin-bottom:8px">
+              <div class="avatar active"></div>
+              <div class="existing-account-info">
+                <div class="existing-account-handle">@alice.bsky.social</div>
+                <div class="existing-account-status">ログイン中</div>
+              </div>
+            </div>
+            <div class="existing-account-item" style="margin-bottom:8px">
+              <div class="avatar"></div>
+              <div class="existing-account-info">
+                <div class="existing-account-handle">@bob.bsky.social</div>
+                <div class="existing-account-status expired">セッション期限切れ</div>
+              </div>
+            </div>
+
+            <div class="section-title" style="margin-top:24px">アカウント追加</div>
+            <div class="card" style="margin-top:6px">
+              <div class="form-group" style="margin-top:0">
+                <label>ハンドルまたは DID</label>
+                <input class="form-input" type="text" placeholder="you.bsky.social" />
+              </div>
+              <div class="form-group">
+                <label>アプリパスワード</label>
+                <input class="form-input" type="password" placeholder="xxxx-xxxx-xxxx-xxxx" />
+              </div>
+              <div class="login-actions">
+                <div class="login-links">
+                  <a href="#" style="color:var(--muted);font-size:12px;text-decoration:none">アプリパスワードとは？</a>
+                </div>
+                <button class="btn btn-primary">ログイン</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ─────── PAGE: ログイン (初回表示用) ─────── -->
+        <div id="page-login" class="page">
+          <div class="login-wrapper" style="max-width:400px;margin:40px auto 0;padding:0 16px">
+            <div style="text-align:center">
+              <div class="brand" style="justify-content:center">
+                <img src="../static/massdriver-icon.svg" width="36" height="36" alt="" style="border-radius:6px" />
+                <h1 style="font-size:22px">Mass Driver</h1>
+              </div>
+              <p class="login-tagline" style="margin-top:12px;font-size:14px;color:var(--muted);line-height:1.6">
+                Bluesky に、もっとスムーズに投稿する。<br>
+                複数アカウント対応のクイックポストツール。
+              </p>
+            </div>
+
+            <div class="card" style="margin-top:24px">
+              <div class="form-group" style="margin-top:0">
+                <label>ハンドルまたは DID</label>
+                <input class="form-input" type="text" placeholder="you.bsky.social" />
+              </div>
+              <div class="form-group">
+                <label>アプリパスワード</label>
+                <input class="form-input" type="password" placeholder="xxxx-xxxx-xxxx-xxxx" />
+              </div>
+              <div class="login-actions">
+                <div class="login-links">
+                  <a href="#" style="color:var(--muted);font-size:13px;text-decoration:none">ヘルプ</a>
+                  <a href="#" style="color:var(--muted);font-size:13px;text-decoration:none">アプリパスワードとは？</a>
+                </div>
+                <button class="btn btn-primary">ログイン</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─────── PAGE: 結果 (overlay) ─────── -->
+        <div id="page-result" class="page">
+          <div class="result-overlay">
+            <div class="result-card card">
+              <h2>投稿結果</h2>
+              <div class="result-item">
+                <div class="avatar active"></div>
+                <span>@alice.bsky.social</span>
+                <span class="result-status ok">✓ 成功</span>
+              </div>
+              <div class="result-item">
+                <div class="avatar"></div>
+                <span>@bob.bsky.social</span>
+                <span class="result-status fail">✗ 失敗</span>
+              </div>
+              <div class="result-close">
+                <button class="btn btn-outline" style="margin-right:8px">リトライ</button>
+                <button class="btn btn-primary" onclick="switchPage('post')">OK</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer (desktop only, inside main) -->
+        <div class="footer" style="padding:12px 24px 20px">
+          <a href="#">How To</a> · <a href="#">GitHub</a> · <a href="#">Support</a><br>
+          <span>&copy; 2023 T.Shinohara</span>
+        </div>
+
+      </div><!-- /app-main -->
+
+    </div><!-- /app -->
+
+    <!-- ══════════════════════════════════════════════
+         Mobile Bottom Nav
+         ══════════════════════════════════════════════ -->
+    <nav class="app-bottom-nav">
+      <div class="bottom-nav-items">
+        <button class="bottom-nav-item active" onclick="switchPage('post')">
+          <span class="nav-icon">✏️</span>
+          <span>投稿</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchPage('notifications')">
+          <span class="nav-icon">🔔</span>
+          <span>通知</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchPage('posts')">
+          <span class="nav-icon">📋</span>
+          <span>管理</span>
+        </button>
+        <button class="bottom-nav-item" onclick="switchPage('account')">
+          <span class="nav-icon">👤</span>
+          <span>アカウント</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Mock State Tabs (reviewer toggle for login/result) -->
+    <div class="mock-state-tabs">
+      <button class="mock-state-tab active" onclick="switchPage('post')">App</button>
+      <button class="mock-state-tab" onclick="switchPage('login')">Login</button>
+      <button class="mock-state-tab" onclick="switchPage('result')">Result</button>
+    </div>
+
+    <!-- Back to Index -->
+    <a class="back-link" href="./mockup.html">&larr; 概要に戻る</a>
+
+    <script>
+      function switchPage(name) {
+        document.querySelectorAll('.page').forEach(function (p) {
+          p.classList.remove('active');
+        });
+        var target = document.getElementById('page-' + name);
+        if (target) target.classList.add('active');
+
+        var isApp = ['post', 'notifications', 'posts', 'account'].indexOf(name) !== -1;
+
+        document.querySelectorAll('.sidebar-nav-item').forEach(function (b) {
+          b.classList.remove('active');
+        });
+        document.querySelectorAll('.bottom-nav-item').forEach(function (b) {
+          b.classList.remove('active');
+        });
+
+        if (isApp) {
+          document.querySelectorAll('.sidebar-nav-item').forEach(function (b) {
+            if (b.getAttribute('onclick') === "switchPage('" + name + "')") {
+              b.classList.add('active');
+            }
+          });
+          document.querySelectorAll('.bottom-nav-item').forEach(function (b) {
+            if (b.getAttribute('onclick') === "switchPage('" + name + "')") {
+              b.classList.add('active');
+            }
+          });
+        }
+
+        document.querySelectorAll('.mock-state-tab').forEach(function (t) {
+          t.classList.remove('active');
+        });
+        if (name === 'login' || name === 'result') {
+          document.querySelectorAll('.mock-state-tab').forEach(function (t) {
+            if (t.getAttribute('onclick') === "switchPage('" + name + "')") {
+              t.classList.add('active');
+            }
+          });
+        } else {
+          document.querySelector('.mock-state-tab').classList.add('active');
+        }
+
+        var sidebar = document.querySelector('.app-sidebar');
+        var bottomNav = document.querySelector('.app-bottom-nav');
+        var footer = document.querySelector('.footer');
+        if (name === 'login') {
+          if (sidebar) sidebar.style.display = 'none';
+          if (bottomNav) bottomNav.style.display = 'none';
+          if (footer) footer.style.display = 'none';
+        } else {
+          if (sidebar) sidebar.style.removeProperty('display');
+          if (bottomNav) bottomNav.style.removeProperty('display');
+          if (footer) footer.style.removeProperty('display');
+        }
+      }
+    </script>
+
+  </body>
+</html>
