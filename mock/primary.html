@@ -17,6 +17,7 @@
         display: flex; gap: 3px; background: var(--panel);
         border: 1px solid var(--border); border-radius: var(--radius-sm);
         padding: 3px; z-index: 200; font-size: 11px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
       }
       .mock-state-tab {
         padding: 4px 10px; border-radius: 4px; border: none;
@@ -24,7 +25,7 @@
         cursor: pointer; font-size: 11px; font-family: inherit;
       }
       .mock-state-tab:hover { color: var(--text); }
-      .mock-state-tab.active { background: var(--primary); color: #0b1220; font-weight: 600; }
+      .mock-state-tab.active { background: var(--primary); color: #fff; font-weight: 600; }
 
       @media (max-width: 767px) {
         .mock-state-tabs { top: auto; bottom: 64px; right: 8px; }
@@ -32,6 +33,88 @@
     </style>
   </head>
   <body>
+
+    <!-- SVG Icon Sprite -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+      <symbol id="icon-post" viewBox="0 0 24 24">
+        <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.375 2.625a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"/>
+      </symbol>
+      <symbol id="icon-bell" viewBox="0 0 24 24">
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+      </symbol>
+      <symbol id="icon-list" viewBox="0 0 24 24">
+        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+        <path d="M12 11h4"/><path d="M12 16h4"/>
+        <path d="M8 11h.01"/><path d="M8 16h.01"/>
+      </symbol>
+      <symbol id="icon-user" viewBox="0 0 24 24">
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </symbol>
+      <symbol id="icon-image" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        <circle cx="9" cy="9" r="2"/>
+        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+      </symbol>
+      <symbol id="icon-trash" viewBox="0 0 24 24">
+        <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+      </symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24">
+        <polyline points="20 6 9 17 4 12"/>
+      </symbol>
+      <symbol id="icon-x" viewBox="0 0 24 24">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </symbol>
+      <symbol id="icon-heart" viewBox="0 0 24 24">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </symbol>
+      <symbol id="icon-repeat" viewBox="0 0 24 24">
+        <path d="m17 1 4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+        <path d="m7 23-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+      </symbol>
+      <symbol id="icon-message" viewBox="0 0 24 24">
+        <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/>
+      </symbol>
+      <symbol id="icon-rocket" viewBox="0 0 24 24">
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/>
+        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+      </symbol>
+      <symbol id="icon-reply" viewBox="0 0 24 24">
+        <polyline points="9 17 4 12 9 7"/>
+        <path d="M20 18v-2a4 4 0 0 0-4-4H4"/>
+      </symbol>
+      <symbol id="icon-at-sign" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/>
+      </symbol>
+      <symbol id="icon-star" viewBox="0 0 24 24">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </symbol>
+      <symbol id="icon-chevron-left" viewBox="0 0 24 24">
+        <polyline points="15 18 9 12 15 6"/>
+      </symbol>
+      <symbol id="icon-chevron-down" viewBox="0 0 24 24">
+        <polyline points="6 9 12 15 18 9"/>
+      </symbol>
+      <symbol id="icon-corner-down-left" viewBox="0 0 24 24">
+        <polyline points="9 10 4 15 9 20"/>
+        <path d="M20 4v7a4 4 0 0 1-4 4H4"/>
+      </symbol>
+      <symbol id="icon-help" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </symbol>
+    </svg>
 
     <div class="app">
 
@@ -46,16 +129,16 @@
 
         <nav class="sidebar-nav">
           <button class="sidebar-nav-item active" onclick="switchPage('post')">
-            <span class="sidebar-nav-icon">✏️</span> 投稿
+            <span class="sidebar-nav-icon"><svg class="icon"><use href="#icon-post"/></svg></span> 投稿
           </button>
           <button class="sidebar-nav-item" onclick="switchPage('notifications')">
-            <span class="sidebar-nav-icon">🔔</span> 通知
+            <span class="sidebar-nav-icon"><svg class="icon"><use href="#icon-bell"/></svg></span> 通知
           </button>
           <button class="sidebar-nav-item" onclick="switchPage('posts')">
-            <span class="sidebar-nav-icon">📋</span> 投稿管理
+            <span class="sidebar-nav-icon"><svg class="icon"><use href="#icon-list"/></svg></span> 管理
           </button>
           <button class="sidebar-nav-item" onclick="switchPage('account')">
-            <span class="sidebar-nav-icon">👤</span> アカウント
+            <span class="sidebar-nav-icon"><svg class="icon"><use href="#icon-user"/></svg></span> アカウント
           </button>
         </nav>
 
@@ -69,8 +152,8 @@
             <span>@bob</span>
           </div>
           <button class="sidebar-account-add">
-            <span>+</span>
-            <span>アカウント追加</span>
+            <svg class="icon icon-sm"><use href="#icon-plus"/></svg>
+            <span>追加</span>
           </button>
         </div>
       </aside>
@@ -112,14 +195,14 @@
               <div class="image-thumbs">
                 <div class="image-thumb">
                   <div class="image-thumb-placeholder"></div>
-                  <button class="image-thumb-remove">&times;</button>
+                  <button class="image-thumb-remove" aria-label="画像を削除"><svg class="icon icon-xs"><use href="#icon-x"/></svg></button>
                 </div>
               </div>
               <div class="composer-footer">
                 <span class="char-count">42 / 300</span>
                 <div class="toolbar">
-                  <button class="btn btn-outline btn-sm btn-attach">🖼 画像</button>
-                  <button class="btn btn-primary">Lift Off!</button>
+                  <button class="btn btn-outline btn-sm btn-attach" aria-label="画像を添付"><svg class="icon icon-sm"><use href="#icon-image"/></svg></button>
+                  <button class="btn btn-primary"><svg class="icon icon-sm"><use href="#icon-rocket"/></svg> Lift Off!</button>
                 </div>
               </div>
             </div>
@@ -129,19 +212,19 @@
               <div class="template-item">
                 <span class="template-text">Use Mass Driver! share it! https://mdrv.shino3.net</span>
                 <div class="template-actions">
-                  <button class="btn btn-ghost btn-sm">挿入</button>
+                  <button class="btn btn-ghost btn-sm" aria-label="テンプレートを挿入"><svg class="icon icon-sm"><use href="#icon-corner-down-left"/></svg></button>
                 </div>
               </div>
               <div class="template-item">
                 <span class="template-text">@someone Thank you for your post!</span>
                 <div class="template-actions">
-                  <button class="btn btn-ghost btn-sm">挿入</button>
+                  <button class="btn btn-ghost btn-sm" aria-label="テンプレートを挿入"><svg class="icon icon-sm"><use href="#icon-corner-down-left"/></svg></button>
                 </div>
               </div>
               <div class="template-item">
                 <span class="template-text">リリースしました。フィードバックお願いします。</span>
                 <div class="template-actions">
-                  <button class="btn btn-ghost btn-sm">挿入</button>
+                  <button class="btn btn-ghost btn-sm" aria-label="テンプレートを挿入"><svg class="icon icon-sm"><use href="#icon-corner-down-left"/></svg></button>
                 </div>
               </div>
             </div>
@@ -155,7 +238,6 @@
 
             <div class="page-intro">
               <h2>通知</h2>
-              <p>全アカウントに届いた通知をまとめて確認。</p>
             </div>
 
             <div class="account-bar">
@@ -177,92 +259,94 @@
               <button class="reason-chip">リアクション</button>
             </div>
 
-            <div class="notification-list">
+            <div class="notif-list">
 
-              <div class="card notification-item unread">
-                <div class="notification-top">
-                  <div class="notification-meta">
-                    <span class="notification-type">リプライ</span>
-                    <span class="notification-account">@alice</span>
-                  </div>
-                  <span class="notification-time">3/10 09:42</span>
+              <!-- Reply (unread) -->
+              <div class="notif-item unread">
+                <div class="notif-badge notif-badge-reply">
+                  <svg class="icon icon-sm"><use href="#icon-reply"/></svg>
                 </div>
-                <div class="notification-body">
-                  <div class="avatar notification-avatar"></div>
-                  <div class="notification-content">
-                    <div class="notification-author-line">
-                      <strong>田中太郎</strong>
-                      <span>@taro</span>
-                    </div>
-                    <p>参考になりました。通知一覧、かなり便利そうです。</p>
+                <div class="notif-body">
+                  <div class="notif-actors">
+                    <div class="avatar" style="width:24px;height:24px"></div>
+                    <span><span class="notif-actor-name">田中太郎</span><span class="notif-action">さんがリプライ</span></span>
+                    <span class="notif-meta">@alice · 09:42</span>
                   </div>
+                  <div class="notif-preview">参考になりました。通知一覧、かなり便利そうです。</div>
                 </div>
               </div>
 
-              <div class="card notification-item">
-                <div class="notification-top">
-                  <div class="notification-meta">
-                    <span class="notification-type">メンション</span>
-                    <span class="notification-account">@bob</span>
-                  </div>
-                  <span class="notification-time">3/10 08:55</span>
+              <!-- Mention -->
+              <div class="notif-item">
+                <div class="notif-badge notif-badge-mention">
+                  <svg class="icon icon-sm"><use href="#icon-at-sign"/></svg>
                 </div>
-                <div class="notification-body">
-                  <div class="avatar notification-avatar"></div>
-                  <div class="notification-content">
-                    <div class="notification-author-line">
-                      <strong>Launch Team</strong>
-                      <span>@launch-team</span>
-                    </div>
-                    <p>@bob.bsky.social こちらの投稿をニュースレターに掲載してもよいですか？</p>
+                <div class="notif-body">
+                  <div class="notif-actors">
+                    <div class="avatar" style="width:24px;height:24px"></div>
+                    <span><span class="notif-actor-name">Launch Team</span><span class="notif-action">さんがメンション</span></span>
+                    <span class="notif-meta">@bob · 08:55</span>
                   </div>
+                  <div class="notif-preview">@bob.bsky.social こちらの投稿をニュースレターに掲載してもよいですか？</div>
                 </div>
               </div>
 
-              <div class="card notification-item">
-                <div class="notification-top">
-                  <div class="notification-meta">
-                    <span class="notification-type">リポスト</span>
-                    <span class="notification-account">@alice</span>
-                  </div>
-                  <span class="notification-time">3/10 08:10</span>
+              <!-- Repost (aggregated) -->
+              <div class="notif-item">
+                <div class="notif-badge notif-badge-repost">
+                  <svg class="icon icon-sm"><use href="#icon-repeat"/></svg>
                 </div>
-                <div class="notification-body">
-                  <div class="avatar notification-avatar"></div>
-                  <div class="notification-content">
-                    <div class="notification-author-line">
-                      <strong>Dev News JP</strong>
-                      <span>@devnewsjp</span>
+                <div class="notif-body">
+                  <div class="notif-actors">
+                    <div class="notif-avatars">
+                      <div class="avatar" style="width:24px;height:24px"></div>
+                      <div class="avatar" style="width:24px;height:24px"></div>
                     </div>
-                    <p>投稿がリポストされました。</p>
+                    <span><span class="notif-actor-name">Dev News JP</span>さん、<span class="notif-actor-name">Tech Weekly</span><span class="notif-action">さんがリポスト</span></span>
+                    <span class="notif-meta">@alice · 08:10</span>
                   </div>
+                  <div class="notif-preview">新機能をリリースしました。マルチアカウント対応の通知整理がかなり楽になります。</div>
                 </div>
               </div>
 
-              <div class="card notification-item">
-                <div class="notification-top">
-                  <div class="notification-meta">
-                    <span class="notification-type">リアクション</span>
-                    <span class="notification-account">@bob</span>
-                  </div>
-                  <span class="notification-time">3/10 07:42</span>
+              <!-- Like / Reaction (aggregated) -->
+              <div class="notif-item">
+                <div class="notif-badge notif-badge-like">
+                  <svg class="icon icon-sm"><use href="#icon-star"/></svg>
                 </div>
-                <div class="notification-body">
-                  <div class="avatar notification-avatar"></div>
-                  <div class="notification-content">
-                    <div class="notification-author-line">
-                      <strong>Aya</strong>
-                      <span>@aya-design</span>
+                <div class="notif-body">
+                  <div class="notif-actors">
+                    <div class="notif-avatars">
+                      <div class="avatar" style="width:24px;height:24px"></div>
+                      <div class="avatar" style="width:24px;height:24px"></div>
+                      <div class="avatar" style="width:24px;height:24px"></div>
                     </div>
-                    <p>投稿に1件のいいねが付きました。</p>
+                    <span><span class="notif-actor-name">Aya</span>さん、<span class="notif-action">他2人がリアクション</span></span>
+                    <span class="notif-meta">@bob · 07:42</span>
                   </div>
+                  <div class="notif-preview">次回アップデートでは投稿管理ページも追加予定です。</div>
+                </div>
+              </div>
+
+              <!-- Reply -->
+              <div class="notif-item">
+                <div class="notif-badge notif-badge-reply">
+                  <svg class="icon icon-sm"><use href="#icon-reply"/></svg>
+                </div>
+                <div class="notif-body">
+                  <div class="notif-actors">
+                    <div class="avatar" style="width:24px;height:24px"></div>
+                    <span><span class="notif-actor-name">佐藤花子</span><span class="notif-action">さんがリプライ</span></span>
+                    <span class="notif-meta">@alice · 07:15</span>
+                  </div>
+                  <div class="notif-preview">使ってみます。複数アカウントの切り替えが楽になりそうですね。</div>
                 </div>
               </div>
 
             </div>
 
             <div class="list-actions">
-              <button class="btn btn-outline">もっと見る</button>
+              <button class="btn btn-outline">もっと見る <svg class="icon icon-sm"><use href="#icon-chevron-down"/></svg></button>
             </div>
 
           </div>
@@ -274,7 +358,6 @@
 
             <div class="page-intro">
               <h2>投稿管理</h2>
-              <p>過去の投稿をまとめて確認・削除。</p>
             </div>
 
             <div class="account-bar">
@@ -298,12 +381,14 @@
                     <span class="managed-post-badge">画像あり</span>
                   </div>
                   <div>
-                    <button class="btn btn-ghost btn-sm">削除</button>
+                    <button class="btn btn-ghost btn-sm" aria-label="投稿を削除"><svg class="icon icon-sm"><use href="#icon-trash"/></svg></button>
                   </div>
                 </div>
                 <p class="managed-post-text">新機能をリリースしました。マルチアカウント対応の通知整理がかなり楽になります。</p>
                 <div class="managed-post-stats">
-                  <span>❤ 24</span><span>🔁 8</span><span>💬 5</span>
+                  <span><svg class="icon icon-xs"><use href="#icon-heart"/></svg> 24</span>
+                  <span><svg class="icon icon-xs"><use href="#icon-repeat"/></svg> 8</span>
+                  <span><svg class="icon icon-xs"><use href="#icon-message"/></svg> 5</span>
                 </div>
               </div>
 
@@ -315,12 +400,14 @@
                     <span class="managed-post-badge">返信</span>
                   </div>
                   <div>
-                    <button class="btn btn-ghost btn-sm">削除</button>
+                    <button class="btn btn-ghost btn-sm" aria-label="投稿を削除"><svg class="icon icon-sm"><use href="#icon-trash"/></svg></button>
                   </div>
                 </div>
                 <p class="managed-post-text">@someone ご紹介ありがとうございます。今週中に改善版を共有します。</p>
                 <div class="managed-post-stats">
-                  <span>❤ 9</span><span>🔁 1</span><span>💬 0</span>
+                  <span><svg class="icon icon-xs"><use href="#icon-heart"/></svg> 9</span>
+                  <span><svg class="icon icon-xs"><use href="#icon-repeat"/></svg> 1</span>
+                  <span><svg class="icon icon-xs"><use href="#icon-message"/></svg> 0</span>
                 </div>
               </div>
 
@@ -331,19 +418,21 @@
                     <span class="managed-post-time">3/9 22:14</span>
                   </div>
                   <div>
-                    <button class="btn btn-ghost btn-sm">削除</button>
+                    <button class="btn btn-ghost btn-sm" aria-label="投稿を削除"><svg class="icon icon-sm"><use href="#icon-trash"/></svg></button>
                   </div>
                 </div>
                 <p class="managed-post-text">次回アップデートでは投稿管理ページも追加予定です。</p>
                 <div class="managed-post-stats">
-                  <span>❤ 14</span><span>🔁 3</span><span>💬 2</span>
+                  <span><svg class="icon icon-xs"><use href="#icon-heart"/></svg> 14</span>
+                  <span><svg class="icon icon-xs"><use href="#icon-repeat"/></svg> 3</span>
+                  <span><svg class="icon icon-xs"><use href="#icon-message"/></svg> 2</span>
                 </div>
               </div>
 
             </div>
 
             <div class="list-actions">
-              <button class="btn btn-outline">もっと見る</button>
+              <button class="btn btn-outline">もっと見る <svg class="icon icon-sm"><use href="#icon-chevron-down"/></svg></button>
             </div>
 
           </div>
@@ -355,10 +444,9 @@
 
             <div class="page-intro">
               <h2>アカウント</h2>
-              <p>ログイン中のアカウントを管理。</p>
             </div>
 
-            <div class="section-title">登録済みアカウント</div>
+            <div class="section-title">登録済み</div>
 
             <div class="existing-account-item" style="margin-bottom:8px">
               <div class="avatar active"></div>
@@ -386,9 +474,9 @@
                 <input class="form-input" type="password" placeholder="xxxx-xxxx-xxxx-xxxx" />
               </div>
               <div class="login-actions">
-                <div class="login-links">
-                  <a href="#" style="color:var(--muted);font-size:12px;text-decoration:none">アプリパスワードとは？</a>
-                </div>
+                <a href="#" style="color:var(--muted);font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:4px">
+                  <svg class="icon icon-xs"><use href="#icon-help"/></svg> アプリパスワードとは？
+                </a>
                 <button class="btn btn-primary">ログイン</button>
               </div>
             </div>
@@ -398,13 +486,13 @@
 
         <!-- ─────── PAGE: ログイン (初回表示用) ─────── -->
         <div id="page-login" class="page">
-          <div class="login-wrapper" style="max-width:400px;margin:40px auto 0;padding:0 16px">
+          <div style="max-width:400px;margin:40px auto 0;padding:0 16px">
             <div style="text-align:center">
               <div class="brand" style="justify-content:center">
                 <img src="../static/massdriver-icon.svg" width="36" height="36" alt="" style="border-radius:6px" />
                 <h1 style="font-size:22px">Mass Driver</h1>
               </div>
-              <p class="login-tagline" style="margin-top:12px;font-size:14px;color:var(--muted);line-height:1.6">
+              <p style="margin-top:12px;font-size:14px;color:var(--muted);line-height:1.6">
                 Bluesky に、もっとスムーズに投稿する。<br>
                 複数アカウント対応のクイックポストツール。
               </p>
@@ -421,8 +509,9 @@
               </div>
               <div class="login-actions">
                 <div class="login-links">
-                  <a href="#" style="color:var(--muted);font-size:13px;text-decoration:none">ヘルプ</a>
-                  <a href="#" style="color:var(--muted);font-size:13px;text-decoration:none">アプリパスワードとは？</a>
+                  <a href="#" style="display:inline-flex;align-items:center;gap:4px">
+                    <svg class="icon icon-xs"><use href="#icon-help"/></svg> ヘルプ
+                  </a>
                 </div>
                 <button class="btn btn-primary">ログイン</button>
               </div>
@@ -438,12 +527,12 @@
               <div class="result-item">
                 <div class="avatar active"></div>
                 <span>@alice.bsky.social</span>
-                <span class="result-status ok">✓ 成功</span>
+                <span class="result-status ok"><svg class="icon icon-sm"><use href="#icon-check"/></svg> 成功</span>
               </div>
               <div class="result-item">
                 <div class="avatar"></div>
                 <span>@bob.bsky.social</span>
-                <span class="result-status fail">✗ 失敗</span>
+                <span class="result-status fail"><svg class="icon icon-sm"><use href="#icon-x"/></svg> 失敗</span>
               </div>
               <div class="result-close">
                 <button class="btn btn-outline" style="margin-right:8px">リトライ</button>
@@ -453,7 +542,7 @@
           </div>
         </div>
 
-        <!-- Footer (desktop only, inside main) -->
+        <!-- Footer -->
         <div class="footer" style="padding:12px 24px 20px">
           <a href="#">How To</a> · <a href="#">GitHub</a> · <a href="#">Support</a><br>
           <span>&copy; 2023 T.Shinohara</span>
@@ -469,19 +558,19 @@
     <nav class="app-bottom-nav">
       <div class="bottom-nav-items">
         <button class="bottom-nav-item active" onclick="switchPage('post')">
-          <span class="nav-icon">✏️</span>
+          <span class="nav-icon"><svg class="icon"><use href="#icon-post"/></svg></span>
           <span>投稿</span>
         </button>
         <button class="bottom-nav-item" onclick="switchPage('notifications')">
-          <span class="nav-icon">🔔</span>
+          <span class="nav-icon"><svg class="icon"><use href="#icon-bell"/></svg></span>
           <span>通知</span>
         </button>
         <button class="bottom-nav-item" onclick="switchPage('posts')">
-          <span class="nav-icon">📋</span>
+          <span class="nav-icon"><svg class="icon"><use href="#icon-list"/></svg></span>
           <span>管理</span>
         </button>
         <button class="bottom-nav-item" onclick="switchPage('account')">
-          <span class="nav-icon">👤</span>
+          <span class="nav-icon"><svg class="icon"><use href="#icon-user"/></svg></span>
           <span>アカウント</span>
         </button>
       </div>
@@ -495,7 +584,7 @@
     </div>
 
     <!-- Back to Index -->
-    <a class="back-link" href="./mockup.html">&larr; 概要に戻る</a>
+    <a class="back-link" href="./mockup.html"><svg class="icon icon-sm" style="vertical-align:-2px"><use href="#icon-chevron-left"/></svg> 概要に戻る</a>
 
     <script>
       function switchPage(name) {
