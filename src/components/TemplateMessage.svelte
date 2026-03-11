@@ -1,4 +1,6 @@
 <script lang="ts">
+  import Icon from "./Icon.svelte";
+
   let {
     item,
     setText,
@@ -13,8 +15,8 @@
 <article class="template-item">
   <button class="template-text" onclick={() => setText(item.text)}>{item.text}</button>
   <div class="template-actions">
-    <button class="btn btn-ghost btn-sm" title="Use" onclick={() => setText(item.text)}>↩</button>
-    <button class="btn btn-danger btn-sm" onclick={() => deleteTemplateItem(item.key)}>×</button>
+    <button class="btn btn-ghost btn-sm" title="Use" onclick={() => setText(item.text)}><Icon name="corner-down-left" size={16} /></button>
+    <button class="btn btn-ghost btn-sm" onclick={() => deleteTemplateItem(item.key)} aria-label="削除"><Icon name="trash" size={16} /></button>
   </div>
 </article>
 
@@ -26,7 +28,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 8px 10px;
-    background: rgba(15, 23, 42, 0.4);
+    background: rgba(0, 0, 0, 0.02);
     cursor: pointer;
     transition: all 0.15s;
   }

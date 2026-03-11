@@ -1,20 +1,20 @@
 @import 'tailwindcss';
 
 :root {
-  --bg: #0f172a;
-  --bg-grad: linear-gradient(170deg, #0f172a 0%, #162033 50%, #1a2740 100%);
-  --panel: #1e293b;
-  --panel-hover: #263548;
-  --panel-soft: #273449;
-  --text: #e2e8f0;
-  --muted: #94a3b8;
-  --primary: #38bdf8;
-  --primary-hover: #7dd3fc;
-  --success: #4ade80;
-  --danger: #f87171;
-  --danger-soft: #fecaca;
-  --border: #334155;
-  --border-light: #475569;
+  --bg: #f8fafc;
+  --bg-grad: #f8fafc;
+  --panel: #ffffff;
+  --panel-hover: #f1f5f9;
+  --panel-soft: #f1f5f9;
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #0284c7;
+  --primary-hover: #0369a1;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --danger-soft: #fca5a5;
+  --border: #e2e8f0;
+  --border-light: #cbd5e1;
   --radius: 12px;
   --radius-sm: 8px;
 }
@@ -29,6 +29,27 @@ body {
 }
 
 @layer components {
+  /* ── App Shell ── */
+  .app {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .app-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .app-page {
+    flex: 1;
+    padding: 20px 24px 24px;
+    width: 100%;
+    max-width: 640px;
+  }
+
+  /* Legacy shell (login page) */
   .shell {
     min-height: 100vh;
     display: flex;
@@ -42,13 +63,16 @@ body {
     flex: 1;
   }
 
+  /* ── Card ── */
   .card {
-    background: color-mix(in srgb, var(--panel) 90%, white 10%);
+    background: var(--panel);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   }
 
+  /* ── Buttons ── */
   .btn {
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
@@ -67,7 +91,7 @@ body {
 
   .btn-primary {
     background: var(--primary);
-    color: #0b1220;
+    color: #fff;
     font-weight: 700;
     padding: 7px 18px;
   }
@@ -76,8 +100,8 @@ body {
   .btn-outline { border-color: var(--border-light); }
   .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 
-  .btn-danger { border-color: var(--danger); color: var(--danger-soft); }
-  .btn-danger:hover { background: rgba(248, 113, 113, 0.1); }
+  .btn-danger { border-color: var(--danger); color: var(--danger); }
+  .btn-danger:hover { background: rgba(220, 38, 38, 0.08); }
 
   .btn-sm { padding: 4px 8px; font-size: 11px; }
 
@@ -86,6 +110,7 @@ body {
 
   .btn-attach { border-style: dashed; }
 
+  /* ── Section Title ── */
   .section-title {
     margin: 14px 0 6px;
     font-size: 11px;
@@ -105,6 +130,7 @@ body {
     color: var(--muted);
   }
 
+  /* ── Form ── */
   .form-input {
     width: 100%;
     padding: 10px 12px;
@@ -116,10 +142,78 @@ body {
     font-family: inherit;
   }
   .form-input:focus { outline: none; border-color: var(--primary); }
-  .form-input::placeholder { color: #64748b; }
+  .form-input::placeholder { color: #94a3b8; }
+
+  /* ── Notification List (the-blue inspired) ── */
+  .notif-list {
+    display: flex;
+    flex-direction: column;
+    margin-top: 4px;
+  }
+
+  .notif-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .notif-item:last-child { border-bottom: none; }
+  .notif-item.unread {
+    background: rgba(2, 132, 199, 0.03);
+    border-radius: var(--radius-sm);
+    padding: 10px 8px;
+  }
+
+  .notif-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .notif-badge-reply   { color: #1e88a8; background: rgba(30, 136, 168, 0.12); }
+  .notif-badge-mention { color: #8b5cf6; background: rgba(139, 92, 246, 0.12); }
+  .notif-badge-repost  { color: #7ba23f; background: rgba(123, 162, 63, 0.12); }
+  .notif-badge-like    { color: #e2943b; background: rgba(226, 148, 59, 0.12); }
+  .notif-badge-quote   { color: #0ea5e9; background: rgba(14, 165, 233, 0.12); }
+  .notif-badge-follow  { color: #6366f1; background: rgba(99, 102, 241, 0.12); }
+
+  .notif-body { flex: 1; min-width: 0; }
+  .notif-actors {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .notif-actor-name { font-weight: 600; }
+  .notif-action { color: var(--muted); }
+  .notif-meta {
+    color: var(--muted);
+    font-size: 11px;
+    margin-left: auto;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .notif-preview {
+    margin-top: 4px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.45;
+  }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 767px) {
+  .app-page { padding: 12px 16px 80px; max-width: 100%; }
   .btn { padding: 5px 7px; font-size: 11px; }
   .btn-primary { padding: 5px 12px; }
+  .notif-actors { flex-wrap: wrap; }
+  .notif-meta { margin-left: 0; width: 100%; margin-top: 2px; }
 }

@@ -10,7 +10,7 @@ const LEGACY_SESSION_KEY = "sess";
 const ACCOUNTS_KEY = "accounts";
 const ACTIVE_ACCOUNT_KEY = "activeAccountId";
 export const BSKY_IMAGE_MAX_BYTES = 1_000_000;
-export const BSKY_IMAGE_MAX_DIMENSION = 1000;
+export const BSKY_IMAGE_MAX_DIMENSION = 2000;
 
 export type StoredAccount = {
   id: string;
@@ -25,8 +25,246 @@ export type MultiPostResult = {
   error?: string;
 };
 
+export type PostImageInput = {
+  file: File;
+  width: number;
+  height: number;
+  alt?: string;
+};
+
+export type AccountRequestError = {
+  accountId: string;
+  handle: string;
+  error: string;
+};
+
+export type TimelineCursorByAccount = Record<string, string | null>;
+
+export type AccountNotificationReason =
+  | "reply"
+  | "mention"
+  | "repost"
+  | "like"
+  | "quote"
+  | "follow"
+  | "unknown";
+
+export type AccountNotification = {
+  id: string;
+  accountId: string;
+  accountHandle: string;
+  reason: AccountNotificationReason;
+  indexedAt: string;
+  isRead: boolean;
+  authorHandle: string;
+  authorDisplayName: string;
+  authorAvatar: string | null;
+  previewText: string;
+  subjectText: string;
+  postUri: string | null;
+};
+
+export type ManagedPostMetrics = {
+  likeCount: number;
+  repostCount: number;
+  replyCount: number;
+  quoteCount: number;
+};
+
+export type ManagedPost = {
+  id: string;
+  uri: string;
+  cid: string | null;
+  accountId: string;
+  accountHandle: string;
+  indexedAt: string;
+  text: string;
+  hasMedia: boolean;
+  metrics: ManagedPostMetrics;
+  replyParentUri: string | null;
+};
+
+export type NotificationsPageResult = {
+  items: AccountNotification[];
+  cursorByAccount: TimelineCursorByAccount;
+  errors: AccountRequestError[];
+};
+
+export type ManagedPostsPageResult = {
+  items: ManagedPost[];
+  cursorByAccount: TimelineCursorByAccount;
+  errors: AccountRequestError[];
+};
+
 let currentAccountId: string | null = null;
 let currentHandle = "";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function toOptionalString(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function toNumberOrZero(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
+function createCursorMap(accountIds: string[], existing: TimelineCursorByAccount = {}): TimelineCursorByAccount {
+  return Object.fromEntries(accountIds.map((accountId) => [accountId, existing[accountId] ?? null]));
+}
+
+function sortTimelineDesc<T extends { indexedAt: string }>(items: T[]): T[] {
+  return [...items].sort((left, right) => {
+    const rightTime = new Date(right.indexedAt).getTime();
+    const leftTime = new Date(left.indexedAt).getTime();
+    return rightTime - leftTime;
+  });
+}
+
+function extractRecordText(record: unknown): string {
+  if (!isRecord(record)) return "";
+  if (typeof record.text === "string") return record.text;
+  if (isRecord(record.value) && typeof record.value.text === "string") return record.value.text;
+  return "";
+}
+
+function chunkItems<T>(items: T[], size: number): T[][];
+function chunkItems<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
+function normalizeNotificationReason(reason: unknown): AccountNotificationReason {
+  switch (reason) {
+    case "reply":
+    case "mention":
+    case "repost":
+    case "like":
+    case "quote":
+    case "follow":
+      return reason;
+    default:
+      return "unknown";
+  }
+}
+
+function normalizeNotification(account: StoredAccount, notification: unknown): AccountNotification | null {
+  if (!isRecord(notification)) return null;
+  const author = isRecord(notification.author) ? notification.author : null;
+  const indexedAt = toOptionalString(notification.indexedAt) ?? new Date(0).toISOString();
+  const postUri = toOptionalString(notification.reasonSubject);
+  const notificationUri = toOptionalString(notification.uri);
+  const authorHandle = toOptionalString(author?.handle) ?? "";
+  const authorDisplayName = toOptionalString(author?.displayName) ?? authorHandle;
+  const reason = normalizeNotificationReason(notification.reason);
+  const previewText = extractRecordText(notification.record).trim();
+  const id =
+    toOptionalString(notification.cid) ??
+    notificationUri ??
+    postUri ??
+    `${account.id}:${reason}:${indexedAt}:${authorHandle || "unknown"}`;
+
+  return {
+    id,
+    accountId: account.id,
+    accountHandle: account.handle,
+    reason,
+    indexedAt,
+    isRead: notification.isRead === true,
+    authorHandle,
+    authorDisplayName,
+    authorAvatar: toOptionalString(author?.avatar),
+    previewText,
+    subjectText: "",
+    postUri,
+  };
+}
+
+async function resolveNotificationSubjectTexts(
+  agent: AtpAgent,
+  items: AccountNotification[]
+): Promise<AccountNotification[]> {
+  const uris = [...new Set(items.map((item) => item.postUri).filter((uri): uri is string => !!uri))];
+  if (uris.length === 0) return items;
+
+  const textByUri: Record<string, string> = {};
+
+  for (const batch of chunkItems(uris, 25)) {
+    try {
+      const { data } = await agent.getPosts({ uris: batch });
+      for (const post of (data.posts ?? []) as unknown[]) {
+        if (!isRecord(post)) continue;
+        const uri = toOptionalString(post.uri);
+        const text = extractRecordText(post.record).trim();
+        if (!uri) continue;
+        textByUri[uri] = text;
+      }
+    } catch {
+      // 通知一覧の表示自体は継続する
+    }
+  }
+
+  return items.map((item) => ({
+    ...item,
+    subjectText: item.postUri ? textByUri[item.postUri] ?? "" : "",
+  }));
+}
+
+function extractReplyParentUri(postView: unknown): string | null {
+  if (!isRecord(postView) || !isRecord(postView.reply) || !isRecord(postView.reply.parent)) return null;
+  return toOptionalString(postView.reply.parent.uri);
+}
+
+function hasMediaEmbed(postView: unknown): boolean {
+  if (!isRecord(postView) || !isRecord(postView.embed)) return false;
+  const embedType = toOptionalString(postView.embed.$type) ?? "";
+  return embedType.includes("images") || embedType.includes("video") || embedType.includes("media");
+}
+
+function normalizeManagedPost(account: StoredAccount, entry: unknown): ManagedPost | null {
+  if (!isRecord(entry) || !isRecord(entry.post)) return null;
+  if (entry.reason) return null;
+
+  const postView = entry.post;
+  const author = isRecord(postView.author) ? postView.author : null;
+  const authorDid = toOptionalString(author?.did);
+  if (authorDid && account.session.did && authorDid !== account.session.did) return null;
+
+  const uri = toOptionalString(postView.uri);
+  if (!uri) return null;
+
+  const indexedAt =
+    toOptionalString(postView.indexedAt) ??
+    (isRecord(postView.record) ? toOptionalString(postView.record.createdAt) : null) ??
+    new Date(0).toISOString();
+
+  return {
+    id: uri,
+    uri,
+    cid: toOptionalString(postView.cid),
+    accountId: account.id,
+    accountHandle: account.handle,
+    indexedAt,
+    text: extractRecordText(postView.record).trim(),
+    hasMedia: hasMediaEmbed(postView),
+    metrics: {
+      likeCount: toNumberOrZero(postView.likeCount),
+      repostCount: toNumberOrZero(postView.repostCount),
+      replyCount: toNumberOrZero(postView.replyCount),
+      quoteCount: toNumberOrZero(postView.quoteCount),
+    },
+    replyParentUri: extractReplyParentUri(postView),
+  };
+}
 
 function updateStoredAccountSession(accountId: string, session: AtpSessionData): void {
   const accounts = readAccounts();
@@ -252,7 +490,149 @@ export async function getProfileForAccount(accountId: string) {
   }
 }
 
-export async function post(text: string, imageFiles: File[] = []) {
+export async function getNotificationsForAccounts(
+  accountIds: string[],
+  cursorByAccount: TimelineCursorByAccount = {},
+  limit = 25
+): Promise<NotificationsPageResult> {
+  const allAccounts = readAccounts();
+  const targets =
+    accountIds.length > 0
+      ? allAccounts.filter((account) => accountIds.includes(account.id))
+      : allAccounts;
+
+  const nextCursorByAccount = createCursorMap(
+    targets.map((account) => account.id),
+    cursorByAccount
+  );
+
+  const results = await Promise.all(
+    targets.map(async (account) => {
+      try {
+        const { agent, resume } = createAgentForSession(account);
+        await resume();
+        const { data } = await agent.listNotifications({
+          limit,
+          cursor: cursorByAccount[account.id] ?? undefined,
+        });
+        const normalizedItems = ((data.notifications ?? []) as unknown[])
+          .map((notification) => normalizeNotification(account, notification))
+          .filter((notification): notification is AccountNotification => notification !== null);
+        const items = await resolveNotificationSubjectTexts(agent, normalizedItems);
+        return {
+          accountId: account.id,
+          cursor: data.cursor ?? null,
+          items,
+          error: null,
+        };
+      } catch (error) {
+        return {
+          accountId: account.id,
+          cursor: cursorByAccount[account.id] ?? null,
+          items: [] as AccountNotification[],
+          error: {
+            accountId: account.id,
+            handle: account.handle,
+            error: toErrorMessage(error),
+          },
+        };
+      }
+    })
+  );
+
+  const items: AccountNotification[] = [];
+  const errors: AccountRequestError[] = [];
+
+  for (const result of results) {
+    nextCursorByAccount[result.accountId] = result.cursor;
+    items.push(...result.items);
+    if (result.error) errors.push(result.error);
+  }
+
+  return {
+    items: sortTimelineDesc(items),
+    cursorByAccount: nextCursorByAccount,
+    errors,
+  };
+}
+
+export async function getManagedPostsForAccounts(
+  accountIds: string[],
+  cursorByAccount: TimelineCursorByAccount = {},
+  limit = 25
+): Promise<ManagedPostsPageResult> {
+  const allAccounts = readAccounts();
+  const targets =
+    accountIds.length > 0
+      ? allAccounts.filter((account) => accountIds.includes(account.id))
+      : allAccounts;
+
+  const nextCursorByAccount = createCursorMap(
+    targets.map((account) => account.id),
+    cursorByAccount
+  );
+
+  const results = await Promise.all(
+    targets.map(async (account) => {
+      try {
+        const { agent, resume } = createAgentForSession(account);
+        await resume();
+        const { data } = await agent.getAuthorFeed({
+          actor: account.session.did ?? account.handle,
+          filter: "posts_with_replies",
+          limit,
+          cursor: cursorByAccount[account.id] ?? undefined,
+        });
+        const items = ((data.feed ?? []) as unknown[])
+          .map((entry) => normalizeManagedPost(account, entry))
+          .filter((post): post is ManagedPost => post !== null);
+        return {
+          accountId: account.id,
+          cursor: data.cursor ?? null,
+          items,
+          error: null,
+        };
+      } catch (error) {
+        return {
+          accountId: account.id,
+          cursor: cursorByAccount[account.id] ?? null,
+          items: [] as ManagedPost[],
+          error: {
+            accountId: account.id,
+            handle: account.handle,
+            error: toErrorMessage(error),
+          },
+        };
+      }
+    })
+  );
+
+  const items: ManagedPost[] = [];
+  const errors: AccountRequestError[] = [];
+
+  for (const result of results) {
+    nextCursorByAccount[result.accountId] = result.cursor;
+    items.push(...result.items);
+    if (result.error) errors.push(result.error);
+  }
+
+  return {
+    items: sortTimelineDesc(items),
+    cursorByAccount: nextCursorByAccount,
+    errors,
+  };
+}
+
+export async function deleteManagedPost(accountId: string, postUri: string): Promise<void> {
+  const account = getAccountById(accountId);
+  if (!account) throw new Error("Account not found");
+
+  const { agent, resume } = createAgentForSession(account);
+  await resume();
+  await agent.deletePost(postUri);
+}
+
+export async function post(text: string, imageFiles: PostImageInput[] = []) {
   const activeId = getActiveAccountId();
   if (!activeId) throw new Error("No active account");
   const results = await postToAccounts(text, [activeId], imageFiles);
@@ -283,7 +663,7 @@ export async function extractHashtagsFromRichText(text: string): Promise<string[
 export async function postToAccounts(
   text: string,
   accountIds: string[],
-  imageFiles: File[] = []
+  imageFiles: PostImageInput[] = []
 ): Promise<MultiPostResult[]> {
   const allAccounts = readAccounts();
   const targets = allAccounts.filter((account) => accountIds.includes(account.id));
@@ -304,7 +684,7 @@ export async function postToAccounts(
         };
         if (imageFiles.length > 0) {
           const images = await Promise.all(
-            imageFiles.slice(0, 4).map(async (file) => {
+            imageFiles.slice(0, 4).map(async ({ file, width, height, alt }) => {
               if (file.size > BSKY_IMAGE_MAX_BYTES) {
                 throw new Error(
                   `Image too large after preprocessing: ${file.name} (${Math.round(file.size / 1024)}KB)`
@@ -315,7 +695,8 @@ export async function postToAccounts(
                 encoding: file.type || "image/jpeg",
               });
               return {
-                alt: file.name || "",
+                alt: (alt ?? file.name) || "",
+                aspectRatio: { width, height },
                 image: uploaded.data.blob,
               };
             })

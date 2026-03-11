@@ -7,24 +7,23 @@
   import {
     extractHashtagsFromRichText,
     getActiveAccountId,
-    getProfile,
     getProfileForAccount,
     getStoredAccounts,
     hasSession,
     postToAccounts,
     setActiveAccount,
     type MultiPostResult,
+    type PostImageInput,
     type StoredAccount,
   } from "../lib/script/bsky";
   import { isLoading, message, urlQuery } from "../stores/MassDriver";
-  import UserField from "../components/UserField.svelte";
+  import Icon from "../components/Icon.svelte";
+  import AccountFilterBar from "../components/AccountFilterBar.svelte";
   import TemplateMessage from "../components/TemplateMessage.svelte";
 
   let isLoaded = false;
   let text = "";
   let templateMessages: { key: string; text: string }[] = [];
-  let userHandle = "";
-  let userAvatar: string | null = null;
   let accountAvatars: Record<string, string | null> = {};
 
   let imageInput: HTMLInputElement | null = null;
@@ -104,14 +103,6 @@
 
     loadAccounts();
     await loadAccountAvatars();
-
-    const profile = await getProfile();
-    if (profile) {
-      userHandle = profile.handle ?? "";
-      userAvatar = profile.avatar ?? null;
-    } else if (accounts[0]) {
-      userHandle = accounts[0].handle;
-    }
     isLoaded = true;
   });
 
@@ -119,9 +110,6 @@
     setActiveAccount(accountId);
     const ok = await hasSession();
     if (!ok) return;
-    const profile = await getProfile();
-    userHandle = profile?.handle ?? accounts.find((item) => item.id === accountId)?.handle ?? "";
-    userAvatar = profile?.avatar ?? null;
     loadAccounts();
   }
 
@@ -155,7 +143,18 @@
       const results = await postToAccounts(
         postText,
         selectedAccountIds,
-        attachments.flatMap((item) => (item.processedFile ? [item.processedFile] : []))
+        attachments.flatMap((item): PostImageInput[] =>
+          item.processedFile && item.width !== null && item.height !== null
+            ? [
+                {
+                  file: item.processedFile,
+                  width: item.width,
+                  height: item.height,
+                  alt: item.originalFile.name || "",
+                },
+              ]
+            : []
+        )
       );
       lastPostResults = results;
       saveHashtagHistory(hashtags);
@@ -358,8 +357,8 @@
     if (!normalized) return;
 
     const active = getActiveHashtagState(text, cursorStart, cursorEnd);
-    let nextText = text;
-    let nextCursor = text.length;
+    let nextText: string;
+    let nextCursor: number;
 
     if (active.query !== null && active.start >= 0) {
       const replacement = `#${normalized} `;
@@ -386,53 +385,12 @@
 </script>
 
 {#if isLoaded}
-  <!-- Header -->
-  <header class="header">
-    <div class="brand">
-      <img src="/massdriver-icon.svg" width="30" height="30" alt="Mass Driver" />
-      <h1>Mass Driver</h1>
-    </div>
-    <div class="header-right">
-      <div class="avatar-group">
-        {#each accounts as account (account.id)}
-          {#if account.id === getActiveAccountId()}
-            <UserField avatar={accountAvatars[account.id] ?? userAvatar} handle={account.handle} />
-          {:else}
-            <button
-              class="account-avatar"
-              title={"@" + account.handle}
-              onclick={() => switchActiveAccount(account.id)}
-            >
-              {#if accountAvatars[account.id]}
-                <img
-                  src={accountAvatars[account.id] ?? ""}
-                  alt={account.handle}
-                  class="account-avatar-image"
-                />
-              {:else}
-                <span class="account-avatar-fallback">{account.handle.slice(0, 1).toUpperCase()}</span>
-              {/if}
-            </button>
-          {/if}
-        {/each}
-      </div>
-      <button class="add-account-btn" title="Add account" onclick={goToAddAccount}>+</button>
-    </div>
-  </header>
-
-  <!-- Account Bar -->
-  <div class="account-bar">
-    {#each accounts as account (account.id)}
-      <button
-        class="account-chip"
-        class:selected={selectedAccountIds.includes(account.id)}
-        onclick={() => toggleAccount(account.id)}
-      >
-        <span class="check">{selectedAccountIds.includes(account.id) ? "✓" : ""}</span>
-        <span class="chip-handle">@{account.handle}</span>
-      </button>
-    {/each}
-  </div>
+  <AccountFilterBar
+    {accounts}
+    selectedAccountIds={selectedAccountIds}
+    toggleAccount={toggleAccount}
+    label="Post Targets"
+  />
 
   <!-- Composer Card -->
   <section class="card composer">
@@ -510,9 +468,7 @@
       <div class="toolbar">
         <button onclick={addTemplate} class="btn btn-outline btn-sm" title="Save as template">+ Template</button>
         <button onclick={copyPostUrl} class="btn btn-outline btn-sm" title="Copy share URL">Copy URL</button>
-        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-attach" title="Add images">
-          🖼 Image
-        </button>
+        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-attach" aria-label="画像を添付"><Icon name="image" size={16} /></button>
         <button onclick={submitForm} class="btn btn-primary">Lift Off!</button>
       </div>
     </div>
@@ -550,123 +506,6 @@
 {/if}
 
 <style>
-  .header {
-    padding: 14px 0 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .brand h1 {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    margin: 0;
-  }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .avatar-group {
-    display: flex;
-    align-items: center;
-  }
-  .account-avatar {
-    width: 32px;
-    height: 32px;
-    margin-left: -4px;
-    border-radius: 999px;
-    border: 2px solid var(--border-light);
-    background: #020617;
-    padding: 0;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-  }
-  .account-avatar:first-child {
-    margin-left: 0;
-  }
-  .account-avatar-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .account-avatar-fallback {
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 700;
-  }
-  .add-account-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 999px;
-    border: 1px dashed var(--border-light);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .add-account-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-  }
-
-  .account-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding: 6px 0;
-  }
-  .account-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 10px 3px 5px;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: var(--panel-soft);
-    cursor: pointer;
-    font-size: 12px;
-    color: var(--muted);
-    user-select: none;
-    font-family: inherit;
-  }
-  .account-chip.selected {
-    border-color: var(--primary);
-    color: var(--text);
-    background: rgba(56, 189, 248, 0.08);
-  }
-  .account-chip .check {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    border: 1px solid var(--border-light);
-    background: transparent;
-    color: #0b1220;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    line-height: 1;
-  }
-  .account-chip .chip-handle {
-    font-weight: 500;
-  }
-  .account-chip.selected .check {
-    border-color: var(--primary);
-    background: var(--primary);
-  }
-
   .composer {
     margin-top: 4px;
   }
@@ -816,7 +655,7 @@
     align-items: center;
     padding: 8px 10px;
     border-top: 1px solid var(--border);
-    background: rgba(15, 23, 42, 0.35);
+    background: rgba(0, 0, 0, 0.02);
     font-size: 12px;
   }
   .result-item:first-child {
@@ -835,13 +674,10 @@
   }
 
   @media (max-width: 480px) {
-    .brand h1 { font-size: 18px; }
     textarea { min-height: 80px; font-size: 14px; padding: 8px; }
     .image-thumb-group { width: 60px; }
     .image-thumb { width: 44px; height: 44px; }
     .composer-footer { flex-wrap: wrap; }
     .toolbar { gap: 4px; }
-    .account-chip { font-size: 11px; padding: 2px 8px 2px 4px; }
-    .account-chip .check { width: 12px; height: 12px; font-size: 8px; }
   }
 </style>

@@ -3,221 +3,156 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mass Driver — Mockup</title>
-    <link rel="stylesheet" href="./mockup.css" />
+    <title>Mass Driver — 一般ユーザー向けUI再設計</title>
+    <link rel="stylesheet" href="./shared.css" />
+    <style>
+      .index-hero {
+        max-width: 800px; margin: 0 auto;
+        padding: 48px 24px 24px; text-align: center;
+      }
+      .index-hero h1 { font-size: 28px; margin-bottom: 8px; }
+      .index-hero p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+      .direction-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 16px; padding: 0 24px 80px;
+        max-width: 1080px; margin: 0 auto;
+      }
+      .direction-card {
+        background: var(--panel); border: 1px solid var(--border);
+        border-radius: var(--radius); overflow: hidden;
+        text-decoration: none; color: var(--text);
+        transition: all 0.2s; display: block;
+      }
+      .direction-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+      .direction-card.recommended { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+      .direction-card-head {
+        padding: 14px 16px; border-bottom: 1px solid var(--border);
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .direction-card-head h2 { font-size: 15px; margin: 0; }
+      .direction-label {
+        font-size: 10px; padding: 2px 8px; border-radius: 999px;
+        background: var(--primary); color: #fff; font-weight: 700;
+      }
+      .direction-card-body { padding: 14px 16px; }
+      .direction-card-body p { font-size: 13px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+      .direction-skeleton {
+        display: flex; gap: 4px; height: 80px;
+        background: var(--panel-soft); border-radius: var(--radius-sm);
+        overflow: hidden; margin-bottom: 10px;
+      }
+      .sk { background: var(--border); border-radius: 2px; }
+      .direction-pros { font-size: 11px; }
+      .direction-pros dt { font-weight: 600; }
+      .direction-pros .pro { color: var(--success); }
+      .direction-pros .con { color: var(--danger); }
+      .direction-pros dd { color: var(--muted); margin-bottom: 4px; }
+      .direction-card-foot {
+        padding: 10px 16px; border-top: 1px solid var(--border);
+        font-size: 12px; color: var(--primary); font-weight: 600;
+        display: flex; justify-content: space-between; align-items: center;
+      }
+
+      .rebrand-section {
+        max-width: 1080px; margin: 0 auto;
+        padding: 32px 24px 80px;
+      }
+      .rebrand-section h2 { font-size: 20px; margin-bottom: 16px; text-align: center; }
+      .rebrand-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+      }
+      .rebrand-card {
+        background: var(--panel); border: 1px solid var(--border);
+        border-radius: var(--radius); padding: 16px;
+      }
+      .rebrand-card.recommended { border-color: var(--primary); }
+      .rebrand-card h3 { font-size: 15px; margin-bottom: 12px; }
+      .rebrand-row { margin-bottom: 8px; }
+      .rebrand-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+      .rebrand-value { font-size: 14px; }
+      .rebrand-value.accent { color: var(--primary); font-weight: 600; }
+
+      @media (max-width: 767px) {
+        .direction-grid { grid-template-columns: 1fr; }
+        .rebrand-grid { grid-template-columns: 1fr; }
+        .index-hero h1 { font-size: 22px; }
+      }
+    </style>
   </head>
   <body>
 
-    <!-- ===== Mock Navigation Tabs ===== -->
-    <nav class="page-tabs">
-      <button class="page-tab active" onclick="switchPage('post')">投稿</button>
-      <button class="page-tab" onclick="switchPage('login')">ログイン</button>
-      <button class="page-tab" onclick="switchPage('result')">結果</button>
-    </nav>
-
-    <!-- ═══════════════════════════════════════════
-         PAGE A : 投稿画面 (/)
-         ═══════════════════════════════════════════ -->
-    <div id="page-post" class="page active">
-      <div class="shell">
-        <main class="container">
-
-          <!-- Header -->
-          <header class="header">
-            <div class="brand">
-              <img src="../static/massdriver-icon.svg" width="30" height="30" alt="Mass Driver" />
-              <h1>Mass Driver</h1>
-            </div>
-            <div class="header-right">
-              <div class="avatar-group">
-                <div class="avatar active" title="@alice.bsky.social"></div>
-                <div class="avatar" title="@bob.bsky.social"></div>
-              </div>
-              <button class="btn-icon" title="Add account">+</button>
-            </div>
-          </header>
-
-          <!-- Account Selector (inline) -->
-          <div class="account-bar">
-            <label class="account-chip selected">
-              <span class="check">✓</span>
-              <span class="chip-handle">@alice.bsky.social</span>
-            </label>
-            <label class="account-chip selected">
-              <span class="check">✓</span>
-              <span class="chip-handle">@bob.bsky.social</span>
-            </label>
-          </div>
-
-          <!-- Composer Card -->
-          <section class="card composer">
-            <textarea placeholder="What's up?"></textarea>
-
-            <!-- Image Thumbs (visible only when images attached) -->
-            <div class="image-thumbs">
-              <div class="image-thumb">
-                <div class="image-thumb-placeholder"></div>
-                <button class="image-thumb-remove">×</button>
-              </div>
-              <div class="image-thumb">
-                <div class="image-thumb-placeholder"></div>
-                <button class="image-thumb-remove">×</button>
-              </div>
-            </div>
-
-            <!-- Action bar: char count | tools | post -->
-            <div class="composer-footer">
-              <span class="char-count">42 / 300</span>
-              <div class="toolbar">
-                <button class="btn btn-outline btn-sm" title="Save as template">+ Template</button>
-                <button class="btn btn-outline btn-sm" title="Copy share URL">Copy URL</button>
-                <button class="btn btn-outline btn-sm btn-attach" title="Add images (max 4)">🖼 Image</button>
-                <button class="btn btn-primary">Lift Off!</button>
-              </div>
-            </div>
-          </section>
-
-          <!-- Templates -->
-          <div class="section-title">
-            <span>Templates</span>
-            <span class="badge">3</span>
-          </div>
-          <section class="template-list">
-            <article class="template-item">
-              <div class="template-text">Use Mass Driver! share it! https://mdrv.shino3.net</div>
-              <div class="template-actions">
-                <button class="btn btn-ghost btn-sm" title="Use">↩</button>
-                <button class="btn btn-danger btn-sm">×</button>
-              </div>
-            </article>
-            <article class="template-item">
-              <div class="template-text">@someone Thank you for your post!</div>
-              <div class="template-actions">
-                <button class="btn btn-ghost btn-sm" title="Use">↩</button>
-                <button class="btn btn-danger btn-sm">×</button>
-              </div>
-            </article>
-            <article class="template-item">
-              <div class="template-text">リリースしました。フィードバックお願いします。</div>
-              <div class="template-actions">
-                <button class="btn btn-ghost btn-sm" title="Use">↩</button>
-                <button class="btn btn-danger btn-sm">×</button>
-              </div>
-            </article>
-          </section>
-
-        </main>
-
-        <footer class="footer">
-          <a href="#">How To</a>·<a href="#">GitHub</a>·<a href="#">Support</a>
-          <br />© 2023 T.Shinohara
-        </footer>
-      </div>
+    <!-- ══════════════════════════════════════════════
+         Primary Proposal — 一般ユーザー向け投稿主体UI
+         ══════════════════════════════════════════════ -->
+    <div class="index-hero">
+      <h1>一般ユーザー向け UI 再設計</h1>
+      <p>
+        発信頻度の高い一般ユーザー向けに情報量を整理。<br>
+        投稿を主役に、通知・投稿管理・アカウントは補助ページとして独立。<br>
+        スマホは下部ナビ、PCはサイドバーで切り替え。
+      </p>
     </div>
 
-    <!-- ═══════════════════════════════════════════
-         PAGE B : ログイン画面 (/login)
-         ═══════════════════════════════════════════ -->
-    <div id="page-login" class="page">
-      <div class="shell">
-        <main class="container login-wrapper">
+    <div class="direction-grid">
 
-          <div class="brand" style="justify-content:center; padding-top:20px;">
-            <img src="../static/massdriver-icon.svg" width="44" height="44" alt="Mass Driver" />
-            <h1>Mass Driver</h1>
+      <a class="direction-card recommended" href="./primary.html">
+        <div class="direction-card-head">
+          <h2>主案 — 投稿主体シンプルUI</h2>
+          <span class="direction-label">推奨</span>
+        </div>
+        <div class="direction-card-body">
+          <p>投稿主体のシンプルUI。SVGアイコン・ライトテーマ採用。スマホは下部ナビ4タブ、PCは左サイドバーで全機能に到達。</p>
+          <div class="direction-skeleton">
+            <div class="sk" style="width:36px"></div>
+            <div class="sk" style="flex:1;background:var(--primary);opacity:0.15"></div>
           </div>
-          <p class="login-tagline" style="text-align:center;">
-            Bluesky に、もっとスムーズに投稿する。<br />
-            複数アカウント対応のクイックポストツール。
-          </p>
+          <dl class="direction-pros">
+            <dt class="pro">ポイント</dt>
+            <dd>投稿 / 通知 / 管理 / アカウント の 4 ページ構成</dd>
+            <dd>白ベーステーマ + SVGアイコンで視認性を向上</dd>
+            <dd>アイコンボタン化で文字密度を削減</dd>
+          </dl>
+        </div>
+        <div class="direction-card-foot">
+          <span>フルモックを見る →</span>
+        </div>
+      </a>
 
-          <!-- Existing Accounts -->
-          <section class="existing-accounts">
-            <div class="section-title">保存済みアカウント</div>
-            <div class="existing-account-item">
-              <div class="avatar" style="width:32px;height:32px"></div>
-              <div class="existing-account-info">
-                <div class="existing-account-handle">@alice.bsky.social</div>
-                <div class="existing-account-status">ログイン中</div>
-              </div>
-              <button class="btn btn-ghost btn-sm">切替</button>
-            </div>
-            <div class="existing-account-item">
-              <div class="avatar" style="width:32px;height:32px"></div>
-              <div class="existing-account-info">
-                <div class="existing-account-handle">@bob.bsky.social</div>
-                <div class="existing-account-status expired">セッション期限切れ</div>
-              </div>
-              <button class="btn btn-outline btn-sm">再ログイン</button>
-            </div>
-          </section>
-
-          <!-- New Account Login -->
-          <section class="card login-card">
-            <div class="section-title" style="margin-top:0">新しいアカウントを追加</div>
-            <div class="form-group">
-              <label for="handle">Handle</label>
-              <input class="form-input" id="handle" placeholder="you.bsky.social" />
-            </div>
-            <div class="form-group">
-              <label for="password">App Password</label>
-              <input class="form-input" id="password" type="password" placeholder="xxxx-xxxx-xxxx-xxxx" />
-            </div>
-            <div class="login-actions">
-              <div class="login-links">
-                <a href="#">Sign Up</a>
-                <a href="#">How To</a>
-              </div>
-              <button class="btn btn-primary">Login</button>
-            </div>
-          </section>
-
-        </main>
-
-        <footer class="footer">
-          <a href="#">How To</a>·<a href="#">GitHub</a>·<a href="#">Support</a>
-          <br />© 2023 T.Shinohara
-        </footer>
-      </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════
-         PAGE C : 投稿結果モーダル
-         ═══════════════════════════════════════════ -->
-    <div id="page-result" class="page">
-      <div class="result-overlay">
-        <section class="card result-card">
-          <h2>投稿結果</h2>
-          <div class="result-item">
-            <div class="avatar" style="width:28px;height:28px"></div>
-            <span>@alice.bsky.social</span>
-            <span class="result-status ok">✓ 成功</span>
-          </div>
-          <div class="result-item">
-            <div class="avatar" style="width:28px;height:28px"></div>
-            <span>@bob.bsky.social</span>
-            <span class="result-status fail">✗ 失敗</span>
-          </div>
-          <p style="margin-top:12px; font-size:13px; color:var(--muted);">
-            1 件のアカウントでエラーが発生しました。再試行できます。
-          </p>
-          <div class="result-close">
-            <button class="btn btn-outline btn-sm" style="margin-right:6px">再試行</button>
-            <button class="btn btn-primary btn-sm">OK</button>
-          </div>
-        </section>
+    <div class="rebrand-section">
+      <h2>リブランディング — 3段階の比較</h2>
+      <div class="rebrand-grid">
+
+        <div class="rebrand-card recommended">
+          <h3>Keep Brand（現行維持）<span class="direction-label" style="margin-left:8px;vertical-align:middle">推奨</span></h3>
+          <div class="rebrand-row"><div class="rebrand-label">名称</div><div class="rebrand-value">Mass Driver</div></div>
+          <div class="rebrand-row"><div class="rebrand-label">タグライン</div><div class="rebrand-value accent">Bluesky に、もっとスムーズに投稿する。</div></div>
+          <div class="rebrand-row"><div class="rebrand-label">CTA</div><div class="rebrand-value accent">Lift Off!</div></div>
+          <div class="rebrand-row"><div class="rebrand-label">方針</div><div class="rebrand-value" style="font-size:12px;color:var(--muted)">一般ユーザー向けにシンプルさを重視。現行ブランドで十分に機能する。</div></div>
+        </div>
+
+        <div class="rebrand-card">
+          <h3>Soft Rebrand</h3>
+          <div class="rebrand-row"><div class="rebrand-label">名称</div><div class="rebrand-value">Mass Driver</div></div>
+          <div class="rebrand-row"><div class="rebrand-label">タグライン</div><div class="rebrand-value">複数アカウントの投稿・通知・管理をまとめて。</div></div>
+          <div class="rebrand-row"><div class="rebrand-label">CTA</div><div class="rebrand-value accent">Lift Off!</div></div>
+          <div class="rebrand-row"><div class="rebrand-label">方針</div><div class="rebrand-value" style="font-size:12px;color:var(--muted)">タグラインでマルチアカウントの価値を前面化。</div></div>
+        </div>
+
+        <div class="rebrand-card">
+          <h3>Full Rebrand</h3>
+          <div class="rebrand-row"><div class="rebrand-label">名称</div><div class="rebrand-value">Mass Driver Publishing Studio</div></div>
+          <div class="rebrand-row"><div class="rebrand-label">タグライン</div><div class="rebrand-value">あなたのBluesky運用拠点。</div></div>
+          <div class="rebrand-row"><div class="rebrand-label">CTA</div><div class="rebrand-value accent">Publish</div></div>
+          <div class="rebrand-row"><div class="rebrand-label">方針</div><div class="rebrand-value" style="font-size:12px;color:var(--muted)">一般ユーザーには過剰な印象を与える可能性あり。</div></div>
+        </div>
+
       </div>
     </div>
-
-    <!-- ===== Page Switcher Script ===== -->
-    <script>
-      function switchPage(name) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('page-' + name).classList.add('active');
-        document.querySelector('[onclick*="' + name + '"]').classList.add('active');
-      }
-    </script>
 
   </body>
 </html>

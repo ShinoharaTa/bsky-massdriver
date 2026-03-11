@@ -208,7 +208,7 @@
     height: 32px;
     border-radius: 999px;
     border: 2px solid var(--border-light);
-    background: #020617;
+    background: #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: center;
