@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ManagedPost } from "../lib/script/bsky";
+  import Icon from "./Icon.svelte";
 
   let {
     item,
@@ -34,18 +35,26 @@
       {/if}
     </div>
 
-    <button class="btn btn-danger btn-sm" disabled={isDeleting} onclick={() => onDelete(item)}>
-      {isDeleting ? "削除中..." : "削除"}
+    <button
+      class="btn btn-ghost btn-sm"
+      disabled={isDeleting}
+      onclick={() => onDelete(item)}
+      aria-label="投稿を削除"
+    >
+      {#if isDeleting}
+        削除中...
+      {:else}
+        <Icon name="trash" size={16} />
+      {/if}
     </button>
   </div>
 
   <p class="post-text">{item.text || "本文なし"}</p>
 
   <div class="stats">
-    <span>いいね {item.metrics.likeCount}</span>
-    <span>リポスト {item.metrics.repostCount}</span>
-    <span>返信 {item.metrics.replyCount}</span>
-    <span>引用 {item.metrics.quoteCount}</span>
+    <span><Icon name="heart" size={14} /> {item.metrics.likeCount}</span>
+    <span><Icon name="repeat" size={14} /> {item.metrics.repostCount}</span>
+    <span><Icon name="message" size={14} /> {item.metrics.replyCount}</span>
   </div>
 </article>
 
@@ -100,5 +109,11 @@
     gap: 8px;
     color: var(--muted);
     font-size: 12px;
+  }
+
+  .stats span {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
   }
 </style>

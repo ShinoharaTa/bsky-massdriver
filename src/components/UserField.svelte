@@ -38,7 +38,7 @@
     height: 32px;
     border-radius: 999px;
     border: 2px solid var(--primary);
-    background: #020617;
+    background: #e2e8f0;
     cursor: pointer;
     padding: 0;
     overflow: hidden;
@@ -61,7 +61,7 @@
     border: 1px solid var(--border-light) !important;
     border-radius: var(--radius-sm) !important;
     padding: 10px !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
     display: flex;
     flex-direction: column;
     gap: 8px;

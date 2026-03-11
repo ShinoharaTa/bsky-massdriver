@@ -86,7 +86,7 @@
     margin-left: -4px;
     border-radius: 999px;
     border: 2px solid var(--border-light);
-    background: #020617;
+    background: #e2e8f0;
     padding: 0;
     overflow: hidden;
     display: flex;

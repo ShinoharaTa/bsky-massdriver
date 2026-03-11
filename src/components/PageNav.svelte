@@ -39,7 +39,7 @@
 
   .page-nav a:hover,
   .page-nav a.selected {
-    color: #0b1220;
+    color: #fff;
     border-color: var(--primary);
     background: var(--primary);
     font-weight: 700;

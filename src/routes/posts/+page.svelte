@@ -1,10 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
-  import AppHeader from "../../components/AppHeader.svelte";
   import AccountFilterBar from "../../components/AccountFilterBar.svelte";
-  import PageNav from "../../components/PageNav.svelte";
   import PostListItem from "../../components/PostListItem.svelte";
+  import Icon from "../../components/Icon.svelte";
   import {
     deleteManagedPost,
     getActiveAccountId,
@@ -135,18 +134,8 @@
 </script>
 
 {#if isLoaded}
-  <AppHeader
-    {accounts}
-    {accountAvatars}
-    activeAccountId={getActiveAccountId()}
-    onSwitchActiveAccount={switchActiveAccount}
-    onAddAccount={goToAddAccount}
-  />
-  <PageNav />
-
   <section class="page-intro">
     <h2>投稿管理</h2>
-    <p>自分の投稿を横断表示し、反応数の確認と削除ができます。</p>
   </section>
 
   <AccountFilterBar
@@ -181,7 +170,7 @@
   {#if hasMore}
     <div class="load-more">
       <button class="btn btn-outline" onclick={loadMore} disabled={isLoadingMore}>
-        {isLoadingMore ? "読み込み中..." : "もっと見る"}
+        {isLoadingMore ? "読み込み中..." : "もっと見る"} <Icon name="chevron-down" size={16} />
       </button>
     </div>
   {/if}
@@ -197,11 +186,6 @@
     font-size: 22px;
   }
 
-  .page-intro p {
-    margin: 6px 0 0;
-    color: var(--muted);
-    font-size: 13px;
-  }
 
   .list-section {
     display: grid;

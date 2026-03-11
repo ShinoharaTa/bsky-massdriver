@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { StoredAccount } from "../lib/script/bsky";
+  import Icon from "./Icon.svelte";
 
   let {
     accounts,
@@ -26,7 +27,7 @@
       class:selected={selectedAccountIds.includes(account.id)}
       onclick={() => toggleAccount(account.id)}
     >
-      <span class="check">{selectedAccountIds.includes(account.id) ? "✓" : ""}</span>
+      <span class="check">{#if selectedAccountIds.includes(account.id)}<Icon name="check" size={10} />{/if}</span>
       <span class="chip-handle">@{account.handle}</span>
     </button>
   {/each}
@@ -75,7 +76,7 @@
 
   .account-chip.selected .check {
     background: var(--primary);
-    color: #0b1220;
+    color: #fff;
     font-weight: 700;
   }
 

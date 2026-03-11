@@ -1,10 +1,10 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
-  import AppHeader from "../../components/AppHeader.svelte";
   import AccountFilterBar from "../../components/AccountFilterBar.svelte";
+  import Icon from "../../components/Icon.svelte";
+  import NotificationGroupItem from "../../components/NotificationGroupItem.svelte";
   import NotificationListItem from "../../components/NotificationListItem.svelte";
-  import PageNav from "../../components/PageNav.svelte";
   import {
     getActiveAccountId,
     getNotificationsForAccounts,
@@ -28,6 +28,25 @@
     { key: "quote", label: "引用" },
     { key: "follow", label: "フォロー" },
   ];
+  const NOTIFICATIONS_PAGE_SIZE = 100;
+  const groupableReasons = new Set<AccountNotificationReason>(["like", "repost", "quote"]);
+
+  type NotificationFeedEntry =
+    | {
+        type: "single";
+        id: string;
+        item: AccountNotification;
+      }
+    | {
+        type: "group";
+        id: string;
+        accountHandle: string;
+        reason: AccountNotificationReason;
+        indexedAt: string;
+        isRead: boolean;
+        items: AccountNotification[];
+        subjectText: string;
+      };
 
   let isLoaded = false;
   let isLoadingMore = false;
@@ -98,7 +117,11 @@
   async function loadInitial() {
     $isLoading = true;
     try {
-      const result = await getNotificationsForAccounts(accounts.map((account) => account.id));
+      const result = await getNotificationsForAccounts(
+        accounts.map((account) => account.id),
+        {},
+        NOTIFICATIONS_PAGE_SIZE
+      );
       notifications = result.items;
       cursorByAccount = result.cursorByAccount;
       errors = result.errors;
@@ -113,7 +136,8 @@
     try {
       const result = await getNotificationsForAccounts(
         accounts.map((account) => account.id),
-        cursorByAccount
+        cursorByAccount,
+        NOTIFICATIONS_PAGE_SIZE
       );
       notifications = mergeNotifications(notifications, result.items);
       cursorByAccount = { ...cursorByAccount, ...result.cursorByAccount };
@@ -140,22 +164,57 @@
     return matchesAccount && matchesReason;
   });
 
+  function buildNotificationFeed(items: AccountNotification[]): NotificationFeedEntry[] {
+    const grouped = new Map<string, AccountNotification[]>();
+
+    for (const item of items) {
+      if (!item.postUri || !groupableReasons.has(item.reason)) continue;
+      const key = `${item.accountId}:${item.reason}:${item.postUri}`;
+      grouped.set(key, [...(grouped.get(key) ?? []), item]);
+    }
+
+    const emitted = new Set<string>();
+    const entries: NotificationFeedEntry[] = [];
+
+    for (const item of items) {
+      if (!item.postUri || !groupableReasons.has(item.reason)) {
+        entries.push({ type: "single", id: item.id, item });
+        continue;
+      }
+
+      const key = `${item.accountId}:${item.reason}:${item.postUri}`;
+      const groupItems = grouped.get(key) ?? [item];
+
+      if (groupItems.length === 1) {
+        entries.push({ type: "single", id: item.id, item });
+        continue;
+      }
+
+      if (emitted.has(key)) continue;
+      emitted.add(key);
+
+      entries.push({
+        type: "group",
+        id: key,
+        accountHandle: item.accountHandle,
+        reason: item.reason,
+        indexedAt: groupItems[0]?.indexedAt ?? item.indexedAt,
+        isRead: groupItems.every((groupItem) => groupItem.isRead),
+        items: groupItems,
+        subjectText: groupItems.find((groupItem) => groupItem.subjectText)?.subjectText ?? "",
+      });
+    }
+
+    return entries;
+  }
+
   $: hasMore = Object.values(cursorByAccount).some((cursor) => typeof cursor === "string" && cursor.length > 0);
+  $: notificationFeed = buildNotificationFeed(filteredNotifications);
 </script>
 
 {#if isLoaded}
-  <AppHeader
-    {accounts}
-    {accountAvatars}
-    activeAccountId={getActiveAccountId()}
-    onSwitchActiveAccount={switchActiveAccount}
-    onAddAccount={goToAddAccount}
-  />
-  <PageNav />
-
   <section class="page-intro">
     <h2>通知</h2>
-    <p>ログイン中の全アカウントに届いた反応をまとめて確認できます。</p>
   </section>
 
   <AccountFilterBar
@@ -165,9 +224,9 @@
     label="対象アカウント"
   />
 
-  <div class="section-title">
-    <span>Notification Types</span>
-    <span class="badge">{filteredNotifications.length}</span>
+    <div class="section-title">
+      <span>Notification Types</span>
+      <span class="badge">{notificationFeed.length}</span>
   </div>
   <div class="reason-filter-bar">
     {#each reasonOptions as option (option.key)}
@@ -190,12 +249,23 @@
     </section>
   {/if}
 
-  {#if filteredNotifications.length > 0}
-    <section class="list-section">
-      {#each filteredNotifications as item (item.id)}
-        <NotificationListItem {item} />
+  {#if notificationFeed.length > 0}
+    <div class="notif-list">
+      {#each notificationFeed as entry (entry.id)}
+        {#if entry.type === "group"}
+          <NotificationGroupItem
+            items={entry.items}
+            reason={entry.reason}
+            accountHandle={entry.accountHandle}
+            indexedAt={entry.indexedAt}
+            isRead={entry.isRead}
+            subjectText={entry.subjectText}
+          />
+        {:else}
+          <NotificationListItem item={entry.item} />
+        {/if}
       {/each}
-    </section>
+    </div>
   {:else}
     <section class="card empty-state">
       <h3>表示できる通知がありません</h3>
@@ -206,7 +276,7 @@
   {#if hasMore}
     <div class="load-more">
       <button class="btn btn-outline" onclick={loadMore} disabled={isLoadingMore}>
-        {isLoadingMore ? "読み込み中..." : "もっと見る"}
+        {isLoadingMore ? "読み込み中..." : "もっと見る"} <Icon name="chevron-down" size={16} />
       </button>
     </div>
   {/if}
@@ -220,12 +290,6 @@
   .page-intro h2 {
     margin: 0;
     font-size: 22px;
-  }
-
-  .page-intro p {
-    margin: 6px 0 0;
-    color: var(--muted);
-    font-size: 13px;
   }
 
   .reason-filter-bar {
@@ -250,12 +314,6 @@
     background: color-mix(in srgb, var(--primary) 18%, var(--panel) 82%);
     border-color: var(--primary);
     color: var(--text);
-  }
-
-  .list-section {
-    display: grid;
-    gap: 8px;
-    margin-top: 8px;
   }
 
   .empty-state,

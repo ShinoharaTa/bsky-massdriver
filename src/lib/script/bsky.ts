@@ -60,6 +60,7 @@ export type AccountNotification = {
   authorDisplayName: string;
   authorAvatar: string | null;
   previewText: string;
+  subjectText: string;
   postUri: string | null;
 };
 
@@ -133,6 +134,15 @@ function extractRecordText(record: unknown): string {
   return "";
 }
 
+function chunkItems<T>(items: T[], size: number): T[][];
+function chunkItems<T>(items: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
 function normalizeNotificationReason(reason: unknown): AccountNotificationReason {
   switch (reason) {
     case "reply":
@@ -151,13 +161,15 @@ function normalizeNotification(account: StoredAccount, notification: unknown): A
   if (!isRecord(notification)) return null;
   const author = isRecord(notification.author) ? notification.author : null;
   const indexedAt = toOptionalString(notification.indexedAt) ?? new Date(0).toISOString();
-  const postUri = toOptionalString(notification.reasonSubject) ?? toOptionalString(notification.uri);
+  const postUri = toOptionalString(notification.reasonSubject);
+  const notificationUri = toOptionalString(notification.uri);
   const authorHandle = toOptionalString(author?.handle) ?? "";
   const authorDisplayName = toOptionalString(author?.displayName) ?? authorHandle;
   const reason = normalizeNotificationReason(notification.reason);
   const previewText = extractRecordText(notification.record).trim();
   const id =
     toOptionalString(notification.cid) ??
+    notificationUri ??
     postUri ??
     `${account.id}:${reason}:${indexedAt}:${authorHandle || "unknown"}`;
 
@@ -172,8 +184,39 @@ function normalizeNotification(account: StoredAccount, notification: unknown): A
     authorDisplayName,
     authorAvatar: toOptionalString(author?.avatar),
     previewText,
+    subjectText: "",
     postUri,
   };
+}
+
+async function resolveNotificationSubjectTexts(
+  agent: AtpAgent,
+  items: AccountNotification[]
+): Promise<AccountNotification[]> {
+  const uris = [...new Set(items.map((item) => item.postUri).filter((uri): uri is string => !!uri))];
+  if (uris.length === 0) return items;
+
+  const textByUri: Record<string, string> = {};
+
+  for (const batch of chunkItems(uris, 25)) {
+    try {
+      const { data } = await agent.getPosts({ uris: batch });
+      for (const post of (data.posts ?? []) as unknown[]) {
+        if (!isRecord(post)) continue;
+        const uri = toOptionalString(post.uri);
+        const text = extractRecordText(post.record).trim();
+        if (!uri) continue;
+        textByUri[uri] = text;
+      }
+    } catch {
+      // 通知一覧の表示自体は継続する
+    }
+  }
+
+  return items.map((item) => ({
+    ...item,
+    subjectText: item.postUri ? textByUri[item.postUri] ?? "" : "",
+  }));
 }
 
 function extractReplyParentUri(postView: unknown): string | null {
@@ -472,9 +515,10 @@ export async function getNotificationsForAccounts(
           limit,
           cursor: cursorByAccount[account.id] ?? undefined,
         });
-        const items = ((data.notifications ?? []) as unknown[])
+        const normalizedItems = ((data.notifications ?? []) as unknown[])
           .map((notification) => normalizeNotification(account, notification))
           .filter((notification): notification is AccountNotification => notification !== null);
+        const items = await resolveNotificationSubjectTexts(agent, normalizedItems);
         return {
           accountId: account.id,
           cursor: data.cursor ?? null,

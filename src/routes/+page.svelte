@@ -17,9 +17,8 @@
     type StoredAccount,
   } from "../lib/script/bsky";
   import { isLoading, message, urlQuery } from "../stores/MassDriver";
-  import AppHeader from "../components/AppHeader.svelte";
+  import Icon from "../components/Icon.svelte";
   import AccountFilterBar from "../components/AccountFilterBar.svelte";
-  import PageNav from "../components/PageNav.svelte";
   import TemplateMessage from "../components/TemplateMessage.svelte";
 
   let isLoaded = false;
@@ -386,14 +385,6 @@
 </script>
 
 {#if isLoaded}
-  <AppHeader
-    {accounts}
-    {accountAvatars}
-    activeAccountId={getActiveAccountId()}
-    onSwitchActiveAccount={switchActiveAccount}
-    onAddAccount={goToAddAccount}
-  />
-  <PageNav />
   <AccountFilterBar
     {accounts}
     selectedAccountIds={selectedAccountIds}
@@ -477,9 +468,7 @@
       <div class="toolbar">
         <button onclick={addTemplate} class="btn btn-outline btn-sm" title="Save as template">+ Template</button>
         <button onclick={copyPostUrl} class="btn btn-outline btn-sm" title="Copy share URL">Copy URL</button>
-        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-attach" title="Add images">
-          🖼 Image
-        </button>
+        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-attach" aria-label="画像を添付"><Icon name="image" size={16} /></button>
         <button onclick={submitForm} class="btn btn-primary">Lift Off!</button>
       </div>
     </div>
@@ -666,7 +655,7 @@
     align-items: center;
     padding: 8px 10px;
     border-top: 1px solid var(--border);
-    background: rgba(15, 23, 42, 0.35);
+    background: rgba(0, 0, 0, 0.02);
     font-size: 12px;
   }
   .result-item:first-child {
