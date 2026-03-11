@@ -3,12 +3,7 @@
   import { goto } from "$app/navigation";
   import { afterNavigate } from "$app/navigation";
   import Icon from "./Icon.svelte";
-  import {
-    getActiveAccountId,
-    getProfileForAccount,
-    getStoredAccounts,
-    type StoredAccount,
-  } from "../lib/script/bsky";
+  import { getProfileForAccount, getStoredAccounts, type StoredAccount } from "../lib/script/bsky";
 
   const navItems = [
     { href: "/", icon: "post", label: "投稿" },
@@ -18,12 +13,10 @@
   ];
 
   let accounts: StoredAccount[] = $state([]);
-  let activeAccountId: string | null = $state(null);
   let accountAvatars: Record<string, string | null> = $state({});
 
   async function loadAccounts() {
     accounts = getStoredAccounts();
-    activeAccountId = getActiveAccountId();
     const entries = await Promise.all(
       accounts.map(async (account) => {
         const profile = await getProfileForAccount(account.id);
@@ -60,7 +53,7 @@
 
   <div class="sidebar-accounts">
     {#each accounts as account (account.id)}
-      <div class="sidebar-account-item" class:active-account={account.id === activeAccountId}>
+      <div class="sidebar-account-item">
         {#if accountAvatars[account.id]}
           <img
             src={accountAvatars[account.id] ?? ""}
@@ -87,10 +80,10 @@
     width: 200px;
     background: var(--panel);
     border-right: 1px solid var(--border);
-    padding: 16px 12px;
+    padding: 14px 10px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     position: sticky;
     top: 0;
     height: 100vh;
@@ -102,12 +95,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    padding: 4px 6px 8px;
   }
   .sidebar-brand img {
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
   }
   .sidebar-brand h1 {
-    font-size: 16px;
+    font-size: var(--font-sm);
     font-weight: 800;
     letter-spacing: -0.5px;
     margin: 0;
@@ -117,16 +111,15 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    margin-top: 8px;
   }
   .sidebar-nav-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 9px 10px;
+    padding: 8px 10px;
     border-radius: var(--radius-sm);
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--font-sm);
     cursor: pointer;
     text-decoration: none;
     width: 100%;
@@ -161,26 +154,23 @@
     gap: 8px;
     padding: 6px 8px;
     border-radius: var(--radius-sm);
-    font-size: 12px;
+    font-size: var(--font-2xs);
     color: var(--muted);
-  }
-  .sidebar-account-item.active-account {
-    color: var(--text);
   }
 
   .sidebar-avatar-img {
     width: 24px;
     height: 24px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     object-fit: cover;
     flex-shrink: 0;
   }
   .sidebar-avatar-fallback {
     width: 24px;
     height: 24px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     border: 2px solid var(--border-light);
-    background: #e2e8f0;
+    background: var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -197,7 +187,7 @@
     padding: 6px 8px;
     border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--font-2xs);
     color: var(--muted);
     border: 1px dashed var(--border-light);
     background: none;

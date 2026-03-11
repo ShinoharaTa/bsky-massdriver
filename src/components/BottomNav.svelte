@@ -39,17 +39,17 @@
     padding: 4px 0 max(4px, env(safe-area-inset-bottom));
   }
   .bottom-nav-items {
-    display: flex;
-    justify-content: space-around;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
   }
   .bottom-nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    padding: 6px 12px;
+    padding: 6px 0;
     color: var(--muted);
-    font-size: 10px;
+    font-size: var(--font-2xs);
     text-decoration: none;
     transition: color 0.15s;
   }
