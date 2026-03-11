@@ -47,10 +47,10 @@
     gap: 5px;
     padding: 3px 10px 3px 5px;
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: var(--panel-soft);
     cursor: pointer;
-    font-size: 12px;
+    font-size: var(--font-sm);
     color: var(--muted);
     user-select: none;
     font-family: inherit;
@@ -65,22 +65,22 @@
   .check {
     width: 16px;
     height: 16px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: var(--font-2xs);
     background: rgba(148, 163, 184, 0.16);
     color: transparent;
   }
 
   .account-chip.selected .check {
     background: var(--primary);
-    color: #fff;
+    color: var(--panel);
     font-weight: 700;
   }
 
   .chip-handle {
-    font-size: 12px;
+    font-size: var(--font-sm);
   }
 </style>

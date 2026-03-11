@@ -18,7 +18,7 @@
     padding: 12px 0 20px;
     color: var(--muted);
     text-align: center;
-    font-size: 12px;
+    font-size: var(--font-xs);
   }
   .footer :global(a),
   a {

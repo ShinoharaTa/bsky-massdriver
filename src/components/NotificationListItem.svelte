@@ -73,15 +73,15 @@
   .notif-avatar {
     width: 24px;
     height: 24px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     object-fit: cover;
     flex-shrink: 0;
   }
   .notif-avatar-fallback {
     width: 24px;
     height: 24px;
-    border-radius: 999px;
-    background: #e2e8f0;
+    border-radius: var(--radius-full);
+    background: var(--border);
     border: 2px solid var(--border-light);
     display: flex;
     align-items: center;

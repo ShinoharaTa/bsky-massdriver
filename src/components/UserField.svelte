@@ -36,9 +36,9 @@
   .avatar-btn {
     width: 32px;
     height: 32px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     border: 2px solid var(--primary);
-    background: #e2e8f0;
+    background: var(--border);
     cursor: pointer;
     padding: 0;
     overflow: hidden;
@@ -50,11 +50,11 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
   }
   .avatar-fallback {
     color: var(--muted);
-    font-size: 14px;
+    font-size: var(--font-base);
   }
   :global(.popover-content) {
     background: var(--panel) !important;
@@ -68,7 +68,7 @@
     align-items: stretch;
   }
   :global(.popover-handle) {
-    font-size: 12px;
+    font-size: var(--font-sm);
     color: var(--muted);
     text-align: center;
   }

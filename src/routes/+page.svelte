@@ -6,12 +6,9 @@
   import { preprocessImage } from "../lib/script/image";
   import {
     extractHashtagsFromRichText,
-    getActiveAccountId,
-    getProfileForAccount,
     getStoredAccounts,
     hasSession,
     postToAccounts,
-    setActiveAccount,
     type MultiPostResult,
     type PostImageInput,
     type StoredAccount,
@@ -24,7 +21,6 @@
   let isLoaded = false;
   let text = "";
   let templateMessages: { key: string; text: string }[] = [];
-  let accountAvatars: Record<string, string | null> = {};
 
   let imageInput: HTMLInputElement | null = null;
   let textareaElement: HTMLTextAreaElement | null = null;
@@ -65,22 +61,8 @@
     accounts = getStoredAccounts();
     const persisted = JSON.parse(localStorage.getItem("selectedAccounts") ?? "[]") as string[];
     const valid = persisted.filter((id) => accounts.some((item) => item.id === id));
-    if (valid.length) selectedAccountIds = valid;
-    else {
-      const activeId = getActiveAccountId();
-      selectedAccountIds = activeId ? [activeId] : accounts[0] ? [accounts[0].id] : [];
-    }
+    selectedAccountIds = valid.length > 0 ? valid : accounts[0] ? [accounts[0].id] : [];
     localStorage.setItem("selectedAccounts", JSON.stringify(selectedAccountIds));
-  }
-
-  async function loadAccountAvatars() {
-    const entries = await Promise.all(
-      accounts.map(async (account) => {
-        const profile = await getProfileForAccount(account.id);
-        return [account.id, profile?.avatar ?? null] as const;
-      })
-    );
-    accountAvatars = Object.fromEntries(entries);
   }
 
   onMount(async () => {
@@ -102,16 +84,8 @@
     if (intent) goto("/");
 
     loadAccounts();
-    await loadAccountAvatars();
     isLoaded = true;
   });
-
-  async function switchActiveAccount(accountId: string) {
-    setActiveAccount(accountId);
-    const ok = await hasSession();
-    if (!ok) return;
-    loadAccounts();
-  }
 
   function goToAddAccount() {
     goto("/login");
@@ -468,7 +442,7 @@
       <div class="toolbar">
         <button onclick={addTemplate} class="btn btn-outline btn-sm" title="Save as template">+ Template</button>
         <button onclick={copyPostUrl} class="btn btn-outline btn-sm" title="Copy share URL">Copy URL</button>
-        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-attach" aria-label="画像を添付"><Icon name="image" size={16} /></button>
+        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-attach btn-icon-only" aria-label="画像を添付"><Icon name="image" size={16} /></button>
         <button onclick={submitForm} class="btn btn-primary">Lift Off!</button>
       </div>
     </div>
@@ -521,7 +495,7 @@
     background: var(--panel-soft);
     color: var(--text);
     padding: 10px;
-    font-size: 15px;
+    font-size: var(--font-base);
     line-height: 1.45;
     font-family: inherit;
   }
@@ -548,11 +522,11 @@
   }
   .hashtag-chip {
     border: 1px solid rgba(56, 189, 248, 0.28);
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: rgba(56, 189, 248, 0.08);
     color: var(--primary);
     padding: 4px 10px;
-    font-size: 11px;
+    font-size: var(--font-sm);
     line-height: 1.2;
     cursor: pointer;
     font-family: inherit;
@@ -566,7 +540,7 @@
   .image-thumb {
     width: 56px;
     height: 56px;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: var(--panel-soft);
     border: 1px solid var(--border);
     position: relative;
@@ -587,12 +561,12 @@
     right: 1px;
     width: 18px;
     height: 18px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     background: rgba(0, 0, 0, 0.75);
-    color: #fff;
+    color: var(--panel);
     border: none;
     cursor: pointer;
-    font-size: 11px;
+    font-size: var(--font-2xs);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -604,7 +578,7 @@
   .image-badge,
   .image-error {
     display: block;
-    font-size: 10px;
+    font-size: var(--font-xs);
     line-height: 1.35;
     color: var(--muted);
     word-break: break-word;
@@ -624,12 +598,12 @@
     gap: 6px;
   }
   .char-count {
-    font-size: 12px;
+    font-size: var(--font-sm);
     color: var(--muted);
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
   }
-  .char-count.warn { color: #fb923c; }
+  .char-count.warn { color: var(--warning); }
   .char-count.over { color: var(--danger); font-weight: 600; }
   .toolbar {
     display: flex;
@@ -656,7 +630,7 @@
     padding: 8px 10px;
     border-top: 1px solid var(--border);
     background: rgba(0, 0, 0, 0.02);
-    font-size: 12px;
+    font-size: var(--font-sm);
   }
   .result-item:first-child {
     border-top: none;
@@ -674,7 +648,7 @@
   }
 
   @media (max-width: 480px) {
-    textarea { min-height: 80px; font-size: 14px; padding: 8px; }
+    textarea { min-height: 80px; font-size: var(--font-base); padding: 10px; }
     .image-thumb-group { width: 60px; }
     .image-thumb { width: 44px; height: 44px; }
     .composer-footer { flex-wrap: wrap; }

@@ -1,22 +1,18 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { goto } from "$app/navigation";
   import Icon from "../../components/Icon.svelte";
   import {
-    getActiveAccountId,
     getProfileForAccount,
     getStoredAccounts,
     hasSession,
     login,
     removeStoredAccount,
-    setActiveAccount,
     type StoredAccount,
   } from "../../lib/script/bsky";
   import { isLoading, message } from "../../stores/MassDriver";
 
   let isLoaded = $state(false);
   let accounts: StoredAccount[] = $state([]);
-  let activeAccountId: string | null = $state(null);
   let accountAvatars: Record<string, string | null> = $state({});
   let username = $state("");
   let password = $state("");
@@ -24,7 +20,6 @@
 
   async function loadAccounts() {
     accounts = getStoredAccounts();
-    activeAccountId = getActiveAccountId();
     const entries = await Promise.all(
       accounts.map(async (account) => {
         const profile = await getProfileForAccount(account.id);
@@ -58,12 +53,6 @@
     }
   }
 
-  function switchAccount(accountId: string) {
-    setActiveAccount(accountId);
-    activeAccountId = accountId;
-    $message = "アカウントを切り替えました";
-  }
-
   async function deleteAccount(accountId: string) {
     const ok = window.confirm("このアカウントを削除しますか？");
     if (!ok) return;
@@ -92,15 +81,10 @@
           {/if}
           <div class="existing-account-info">
             <div class="existing-account-handle">@{account.handle}</div>
-            <div class="existing-account-status" class:active={account.id === activeAccountId}>
-              {account.id === activeAccountId ? "ログイン中" : "保存済み"}
-            </div>
+            <div class="existing-account-status">保存済み</div>
           </div>
           <div class="account-actions">
-            {#if account.id !== activeAccountId}
-              <button class="btn btn-outline btn-sm" onclick={() => switchAccount(account.id)}>切替</button>
-            {/if}
-            <button class="btn btn-ghost btn-sm" onclick={() => deleteAccount(account.id)} aria-label="アカウント削除">
+            <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteAccount(account.id)} aria-label="アカウント削除">
               <Icon name="trash" size={16} />
             </button>
           </div>
@@ -153,7 +137,7 @@
   }
   .page-intro h2 {
     margin: 0;
-    font-size: 22px;
+    font-size: var(--font-xl);
   }
 
   .account-list {
@@ -178,20 +162,20 @@
   .account-avatar-img {
     width: 36px;
     height: 36px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     object-fit: cover;
     flex-shrink: 0;
   }
   .account-avatar-fallback {
     width: 36px;
     height: 36px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     border: 2px solid var(--border-light);
-    background: #e2e8f0;
+    background: var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 13px;
+    font-size: var(--font-sm);
     font-weight: 700;
     color: var(--muted);
     flex-shrink: 0;
@@ -202,16 +186,13 @@
     min-width: 0;
   }
   .existing-account-handle {
-    font-size: 14px;
+    font-size: var(--font-base);
     font-weight: 500;
     word-break: break-all;
   }
   .existing-account-status {
-    font-size: 12px;
+    font-size: var(--font-sm);
     color: var(--muted);
-  }
-  .existing-account-status.active {
-    color: var(--success);
   }
 
   .account-actions {
@@ -228,7 +209,7 @@
   }
   .form-group label {
     display: block;
-    font-size: 12px;
+    font-size: var(--font-xs);
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -237,7 +218,7 @@
 
   .error-msg {
     margin-top: 10px;
-    font-size: 13px;
+    font-size: var(--font-sm);
     color: var(--danger);
   }
 
@@ -250,7 +231,7 @@
 
   .help-link {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--font-sm);
     text-decoration: none;
     display: inline-flex;
     align-items: center;

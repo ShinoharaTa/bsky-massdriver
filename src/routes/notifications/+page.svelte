@@ -1,17 +1,13 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import AccountFilterBar from "../../components/AccountFilterBar.svelte";
   import Icon from "../../components/Icon.svelte";
   import NotificationGroupItem from "../../components/NotificationGroupItem.svelte";
   import NotificationListItem from "../../components/NotificationListItem.svelte";
   import {
-    getActiveAccountId,
     getNotificationsForAccounts,
-    getProfileForAccount,
     getStoredAccounts,
     hasSession,
-    setActiveAccount,
     type AccountNotification,
     type AccountNotificationReason,
     type AccountRequestError,
@@ -51,7 +47,6 @@
   let isLoaded = false;
   let isLoadingMore = false;
   let accounts: StoredAccount[] = [];
-  let accountAvatars: Record<string, string | null> = {};
   let selectedAccountIds: string[] = [];
   let selectedReasons: AccountNotificationReason[] = ["reply", "mention", "repost", "like"];
   let notifications: AccountNotification[] = [];
@@ -76,25 +71,6 @@
     const valid = persisted.filter((id) => accounts.some((account) => account.id === id));
     selectedAccountIds = valid.length > 0 ? valid : accounts.map((account) => account.id);
     localStorage.setItem("notifications.selectedAccounts", JSON.stringify(selectedAccountIds));
-  }
-
-  async function loadAccountAvatars() {
-    const entries = await Promise.all(
-      accounts.map(async (account) => {
-        const profile = await getProfileForAccount(account.id);
-        return [account.id, profile?.avatar ?? null] as const;
-      })
-    );
-    accountAvatars = Object.fromEntries(entries);
-  }
-
-  async function switchActiveAccount(accountId: string) {
-    setActiveAccount(accountId);
-    await hasSession();
-  }
-
-  function goToAddAccount() {
-    goto("/login");
   }
 
   function toggleAccount(accountId: string) {
@@ -151,7 +127,6 @@
     const ok = await hasSession();
     if (!ok) return;
     loadAccounts();
-    await loadAccountAvatars();
     await loadInitial();
     isLoaded = true;
   });
@@ -289,7 +264,7 @@
 
   .page-intro h2 {
     margin: 0;
-    font-size: 22px;
+    font-size: var(--font-xl);
   }
 
   .reason-filter-bar {
@@ -303,9 +278,9 @@
     border: 1px solid var(--border);
     background: var(--panel-soft);
     color: var(--muted);
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     padding: 6px 10px;
-    font-size: 12px;
+    font-size: var(--font-sm);
     cursor: pointer;
     font-family: inherit;
   }
@@ -323,14 +298,14 @@
 
   .empty-state h3 {
     margin: 0 0 4px;
-    font-size: 16px;
+    font-size: var(--font-lg);
   }
 
   .empty-state p,
   .error-panel p {
     margin: 0;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--font-sm);
   }
 
   .error-panel {

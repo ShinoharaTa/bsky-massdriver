@@ -2,12 +2,10 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import {
-    getActiveAccountId,
     getProfileForAccount,
     getStoredAccounts,
     login,
     removeStoredAccount,
-    setActiveAccount,
     type StoredAccount,
   } from "../../lib/script/bsky";
   import { isLoading } from "../../stores/MassDriver";
@@ -16,7 +14,6 @@
   let password = "";
   let errorMessage = "";
   let accounts: StoredAccount[] = [];
-  let activeAccountId: string | null = null;
   let accountAvatars: Record<string, string | null> = {};
 
   onMount(async () => {
@@ -25,7 +22,6 @@
 
   async function loadAccounts() {
     accounts = getStoredAccounts();
-    activeAccountId = getActiveAccountId();
     const entries = await Promise.all(
       accounts.map(async (account) => {
         const profile = await getProfileForAccount(account.id);
@@ -45,11 +41,6 @@
       $isLoading = false;
       errorMessage = String(error);
     }
-  }
-
-  function useAccount(accountId: string) {
-    setActiveAccount(accountId);
-    goto("/");
   }
 
   async function deleteAccount(accountId: string) {
@@ -83,19 +74,10 @@
             </div>
             <div class="saved-copy">
               <div class="saved-handle">@{account.handle}</div>
-              <div class="saved-status">
-                {#if activeAccountId === account.id}
-                  ログイン中
-                {:else}
-                  保存済み
-                {/if}
-              </div>
+              <div class="saved-status">保存済み</div>
             </div>
           </div>
           <div class="saved-actions">
-            <button class="btn btn-outline btn-sm" onclick={() => useAccount(account.id)}>
-              {activeAccountId === account.id ? "切替中" : "切替"}
-            </button>
             <button class="btn btn-danger btn-sm" onclick={() => deleteAccount(account.id)}>削除</button>
           </div>
         </div>
@@ -153,14 +135,14 @@
     gap: 10px;
   }
   .brand-center h1 {
-    font-size: 26px;
+    font-size: var(--font-2xl);
     font-weight: 800;
     letter-spacing: -0.5px;
     margin: 0;
   }
   .tagline {
     margin-top: 16px;
-    font-size: 14px;
+    font-size: var(--font-base);
     color: var(--muted);
     line-height: 1.7;
     text-align: center;
@@ -172,7 +154,7 @@
     margin-top: 18px;
   }
   .saved-title {
-    font-size: 12px;
+    font-size: var(--font-xs);
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -191,7 +173,7 @@
     padding-top: 0;
   }
   .saved-handle {
-    font-size: 13px;
+    font-size: var(--font-base);
     color: var(--text);
     min-width: 0;
     word-break: break-all;
@@ -206,14 +188,14 @@
   .saved-avatar {
     width: 32px;
     height: 32px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     border: 2px solid var(--border-light);
-    background: #e2e8f0;
+    background: var(--border);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--font-sm);
     font-weight: 700;
     overflow: hidden;
     flex-shrink: 0;
@@ -227,7 +209,7 @@
     min-width: 0;
   }
   .saved-status {
-    font-size: 12px;
+    font-size: var(--font-sm);
     color: var(--success);
   }
   .saved-actions {
@@ -243,7 +225,7 @@
   }
   .form-group label {
     display: block;
-    font-size: 12px;
+    font-size: var(--font-xs);
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -251,7 +233,7 @@
   }
   .error-msg {
     margin-top: 10px;
-    font-size: 13px;
+    font-size: var(--font-sm);
     color: var(--danger);
   }
   .login-actions {
@@ -266,7 +248,7 @@
   }
   .login-links a {
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--font-sm);
     text-decoration: none;
   }
   .login-links a:hover {

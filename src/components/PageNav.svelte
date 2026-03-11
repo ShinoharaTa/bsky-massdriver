@@ -30,16 +30,16 @@
     text-decoration: none;
     border: 1px solid var(--border);
     background: color-mix(in srgb, var(--panel) 85%, white 15%);
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     padding: 6px 12px;
-    font-size: 12px;
+    font-size: var(--font-2xs);
     white-space: nowrap;
     transition: all 0.15s ease;
   }
 
   .page-nav a:hover,
   .page-nav a.selected {
-    color: #fff;
+    color: var(--panel);
     border-color: var(--primary);
     background: var(--primary);
     font-weight: 700;

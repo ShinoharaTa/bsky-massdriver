@@ -78,7 +78,7 @@
         <span class="notif-meta">@{accountHandle} · {formatDate(indexedAt)}</span>
       </div>
       <button
-        class="notif-expand"
+        class="btn btn-ghost btn-sm btn-icon-only notif-expand"
         type="button"
         aria-expanded={isExpanded}
         aria-label={isExpanded ? "一覧を閉じる" : "一覧を展開する"}
@@ -145,11 +145,11 @@
   .notif-avatar-stack {
     width: 24px;
     height: 24px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     object-fit: cover;
     border: 2px solid var(--panel);
     margin-left: -6px;
-    background: #e2e8f0;
+    background: var(--border);
   }
 
   .notif-avatar-stack:first-child {
@@ -159,7 +159,7 @@
   .notif-avatar {
     width: 24px;
     height: 24px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     object-fit: cover;
     flex-shrink: 0;
   }
@@ -167,25 +167,20 @@
   .notif-avatar-fallback {
     width: 24px;
     height: 24px;
-    border-radius: 999px;
-    background: #e2e8f0;
+    border-radius: var(--radius-full);
+    background: var(--border);
     border: 2px solid var(--border-light);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: var(--font-2xs);
     font-weight: 700;
     color: var(--muted);
     flex-shrink: 0;
   }
 
   .notif-expand {
-    border: none;
-    background: transparent;
     color: var(--muted);
-    padding: 2px;
-    border-radius: 6px;
-    cursor: pointer;
     flex-shrink: 0;
   }
 
@@ -231,7 +226,7 @@
 
   .notif-group-detail {
     margin-top: 2px;
-    font-size: 12px;
+    font-size: var(--font-sm);
     color: var(--muted);
     white-space: pre-wrap;
     word-break: break-word;

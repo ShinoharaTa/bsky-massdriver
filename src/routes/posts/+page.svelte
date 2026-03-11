@@ -1,17 +1,13 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import AccountFilterBar from "../../components/AccountFilterBar.svelte";
   import PostListItem from "../../components/PostListItem.svelte";
   import Icon from "../../components/Icon.svelte";
   import {
     deleteManagedPost,
-    getActiveAccountId,
     getManagedPostsForAccounts,
-    getProfileForAccount,
     getStoredAccounts,
     hasSession,
-    setActiveAccount,
     type AccountRequestError,
     type ManagedPost,
     type StoredAccount,
@@ -22,7 +18,6 @@
   let isLoaded = false;
   let isLoadingMore = false;
   let accounts: StoredAccount[] = [];
-  let accountAvatars: Record<string, string | null> = {};
   let selectedAccountIds: string[] = [];
   let posts: ManagedPost[] = [];
   let cursorByAccount: TimelineCursorByAccount = {};
@@ -44,25 +39,6 @@
     const valid = persisted.filter((id) => accounts.some((account) => account.id === id));
     selectedAccountIds = valid.length > 0 ? valid : accounts.map((account) => account.id);
     localStorage.setItem("posts.selectedAccounts", JSON.stringify(selectedAccountIds));
-  }
-
-  async function loadAccountAvatars() {
-    const entries = await Promise.all(
-      accounts.map(async (account) => {
-        const profile = await getProfileForAccount(account.id);
-        return [account.id, profile?.avatar ?? null] as const;
-      })
-    );
-    accountAvatars = Object.fromEntries(entries);
-  }
-
-  async function switchActiveAccount(accountId: string) {
-    setActiveAccount(accountId);
-    await hasSession();
-  }
-
-  function goToAddAccount() {
-    goto("/login");
   }
 
   function toggleAccount(accountId: string) {
@@ -122,7 +98,6 @@
     const ok = await hasSession();
     if (!ok) return;
     loadAccounts();
-    await loadAccountAvatars();
     await loadInitial();
     isLoaded = true;
   });
@@ -183,7 +158,7 @@
 
   .page-intro h2 {
     margin: 0;
-    font-size: 22px;
+    font-size: var(--font-xl);
   }
 
 
@@ -200,14 +175,14 @@
 
   .empty-state h3 {
     margin: 0 0 4px;
-    font-size: 16px;
+    font-size: var(--font-lg);
   }
 
   .empty-state p,
   .error-panel p {
     margin: 0;
     color: var(--muted);
-    font-size: 13px;
+    font-size: var(--font-sm);
   }
 
   .error-panel {

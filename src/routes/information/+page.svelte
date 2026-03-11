@@ -62,7 +62,7 @@
     padding: 14px 0 8px;
   }
   .brand-center h1 {
-    font-size: 22px;
+    font-size: var(--font-xl);
     font-weight: 800;
     letter-spacing: -0.5px;
     margin: 0;
@@ -71,13 +71,13 @@
     margin-top: 24px;
   }
   .info-section h2 {
-    font-size: 16px;
+    font-size: var(--font-lg);
     font-weight: 700;
     margin: 0 0 10px;
     color: var(--text);
   }
   .info-section p {
-    font-size: 14px;
+    font-size: var(--font-base);
     color: var(--muted);
     line-height: 1.7;
     margin-top: 8px;
@@ -88,7 +88,7 @@
     list-style: none;
   }
   .info-section li {
-    font-size: 13px;
+    font-size: var(--font-sm);
     color: var(--muted);
     padding: 2px 0;
   }
@@ -102,7 +102,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     background: var(--panel-soft);
-    font-size: 12px;
+    font-size: var(--font-sm);
     color: var(--muted);
     word-break: break-all;
     line-height: 1.5;

@@ -25,9 +25,9 @@
   }
 
   .loader {
-    border: 16px solid #f3f3f3;
+    border: 16px solid var(--border);
     border-radius: 50%;
-    border-top: 16px solid #38bdf8;
+    border-top: 16px solid var(--primary);
     width: 120px;
     height: 120px;
     animation: spin 2s linear infinite;

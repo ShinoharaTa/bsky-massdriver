@@ -46,6 +46,6 @@
     /* color: white; */
     font-size: 2rem;
     padding: 1rem 2rem;
-    border-radius: 5px;
+    border-radius: var(--radius-sm);
   }
 </style>

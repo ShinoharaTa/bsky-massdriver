@@ -36,7 +36,7 @@
     </div>
 
     <button
-      class="btn btn-ghost btn-sm"
+      class="btn btn-ghost btn-sm btn-icon-only"
       disabled={isDeleting}
       onclick={() => onDelete(item)}
       aria-label="投稿を削除"
@@ -79,26 +79,26 @@
   }
 
   .post-account {
-    font-size: 12px;
+    font-size: var(--font-sm);
     font-weight: 700;
   }
 
   .post-time {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--font-sm);
   }
 
   .reply-badge {
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     padding: 2px 8px;
     border: 1px solid var(--border-light);
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--font-xs);
   }
 
   .post-text {
     margin: 0;
-    font-size: 14px;
+    font-size: var(--font-base);
     white-space: pre-wrap;
     word-break: break-word;
   }
@@ -108,7 +108,7 @@
     flex-wrap: wrap;
     gap: 8px;
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--font-sm);
   }
 
   .stats span {

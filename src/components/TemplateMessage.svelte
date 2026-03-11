@@ -15,8 +15,8 @@
 <article class="template-item">
   <button class="template-text" onclick={() => setText(item.text)}>{item.text}</button>
   <div class="template-actions">
-    <button class="btn btn-ghost btn-sm" title="Use" onclick={() => setText(item.text)}><Icon name="corner-down-left" size={16} /></button>
-    <button class="btn btn-ghost btn-sm" onclick={() => deleteTemplateItem(item.key)} aria-label="削除"><Icon name="trash" size={16} /></button>
+    <button class="btn btn-ghost btn-sm btn-icon-only" title="Use" onclick={() => setText(item.text)}><Icon name="corner-down-left" size={16} /></button>
+    <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteTemplateItem(item.key)} aria-label="削除"><Icon name="trash" size={16} /></button>
   </div>
 </article>
 
@@ -42,7 +42,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     flex: 1;
-    font-size: 13px;
+    font-size: var(--font-xs);
     text-align: left;
     background: none;
     border: none;
@@ -59,6 +59,6 @@
 
   @media (max-width: 480px) {
     .template-item { padding: 6px 8px; }
-    .template-text { font-size: 12px; }
+    .template-text { font-size: var(--font-2xs); }
   }
 </style>

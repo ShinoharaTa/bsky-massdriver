@@ -63,7 +63,7 @@
   }
 
   .brand h1 {
-    font-size: 22px;
+    font-size: var(--font-xl);
     font-weight: 800;
     letter-spacing: -0.5px;
     margin: 0;
@@ -84,9 +84,9 @@
     width: 32px;
     height: 32px;
     margin-left: -4px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     border: 2px solid var(--border-light);
-    background: #e2e8f0;
+    background: var(--border);
     padding: 0;
     overflow: hidden;
     display: flex;
@@ -107,19 +107,19 @@
 
   .account-avatar-fallback {
     color: var(--muted);
-    font-size: 12px;
+    font-size: var(--font-2xs);
     font-weight: 700;
   }
 
   .add-account-btn {
     width: 30px;
     height: 30px;
-    border-radius: 999px;
+    border-radius: var(--radius-full);
     border: 1px dashed var(--border-light);
     background: transparent;
     color: var(--muted);
     cursor: pointer;
-    font-size: 16px;
+    font-size: var(--font-base);
     display: flex;
     align-items: center;
     justify-content: center;
