@@ -34,6 +34,21 @@
   </section>
 
   <section class="info-section">
+    <h2>Share Target (PWA)</h2>
+    <p>
+      Mass Driver をインストールすると、OS の共有メニューから直接テキストや URL を送れるようになります。<br />
+      共有された内容は投稿画面に自動で入力されます。
+    </p>
+    <ul>
+      <li>Android Chrome / Desktop Chrome・Edge：共有メニューに「Mass Driver」が表示されます</li>
+      <li>iOS Safari：Share Target には未対応です。下記の URL クエリをご利用ください</li>
+    </ul>
+    <p>
+      <strong>インストール方法：</strong>ブラウザのメニューから「ホーム画面に追加」または「アプリをインストール」を選択してください。
+    </p>
+  </section>
+
+  <section class="info-section">
     <h2>Tips</h2>
     <p>
       URLクエリパラメータに対応しています。最初からメッセージを入れた状態で、投稿画面を表示できます。<br />
@@ -42,6 +57,10 @@
     <div class="code-block">
       例：https://mdrv.shino3.net/?intent=Use+massdriver%21+share+it%21%0D%0Ahttps%3A%2F%2Fmdrv.shino3.net%0D%0A%40shino4.bsky.social
     </div>
+    <p>
+      iOS など Share Target 非対応の環境では、この URL クエリ形式がフォールバック手段になります。<br />
+      ブログやサイトのシェアリンクに <code>?intent=</code> パラメータ付き URL を埋め込んでご利用ください。
+    </p>
   </section>
 
   <div class="cta">

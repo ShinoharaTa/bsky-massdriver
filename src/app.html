@@ -3,22 +3,15 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>BSKY Mass Driver - Post Only Bluesky Client.</title>
-		<link rel="icon" href="%sveltekit.assets%/03.png" />
+		<link rel="icon" href="%sveltekit.assets%/massdriver-icon.svg" type="image/svg+xml" />
 		<meta name="viewport" content="width=device-width" />
+		<meta name="theme-color" content="#0284c7" />
 		<link rel="manifest" href="/manifest.json">
 		<script>
-		"use strict";
-		registSW();
-		function registSW() {
-			if ('serviceWorker' in navigator) {
-				window.addEventListener('load', function () {
-				navigator.serviceWorker.register('/sw.js', { scope: './' }).then(function (registration) {
-					console.log('ServiceWorker registration successful with scope: ', registration.scope);
-				}, function (err) {
-					console.log('ServiceWorker registration failed: ', err);
-				});
-				});
-			}
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', function () {
+				navigator.serviceWorker.register('/sw.js', { scope: '/' });
+			});
 		}
 		</script>
 		%sveltekit.head%

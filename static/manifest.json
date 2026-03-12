@@ -1,14 +1,31 @@
 {
+	"id": "/",
 	"short_name": "Mass Driver",
 	"name": "BSKY Mass Driver - Post Only Bluesky Client.",
 	"display": "standalone",
 	"orientation": "portrait",
 	"start_url": "/",
+	"scope": "/",
+	"theme_color": "#0284c7",
+	"background_color": "#f8fafc",
 	"icons": [
 		{
-			"src": "/192x192.png",
-			"sizes": "192x192",
-			"type": "image/png"
+			"src": "/massdriver-icon.svg",
+			"sizes": "any",
+			"type": "image/svg+xml",
+			"purpose": "any"
 		}
-	]
+	],
+	"share_target": {
+		"action": "/share",
+		"method": "GET",
+		"params": {
+			"title": "title",
+			"text": "text",
+			"url": "url"
+		}
+	},
+	"launch_handler": {
+		"client_mode": ["navigate-existing", "auto"]
+	}
 }

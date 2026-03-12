@@ -12,7 +12,7 @@
 
   let { children }: { children: Snippet } = $props();
 
-  const standaloneRoutes = ["/login", "/information"];
+  const standaloneRoutes = ["/login", "/information", "/share"];
   let isStandalone = $derived(standaloneRoutes.includes(page.url.pathname));
 </script>
 

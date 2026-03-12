@@ -68,14 +68,24 @@
   onMount(async () => {
     loadTemplateMessages();
     loadHashtagHistory();
+
     const intent = page.url.searchParams.get("intent");
-    if (intent) {
+    const pendingShare = sessionStorage.getItem("pendingShareText");
+
+    if (pendingShare) {
+      text = pendingShare;
+      $urlQuery = pendingShare;
+    } else if (intent) {
       text = intent;
       $urlQuery = intent;
     }
 
     const login = await hasSession();
     if (!login) return;
+
+    if (pendingShare) {
+      sessionStorage.removeItem("pendingShareText");
+    }
 
     if ($urlQuery !== "") {
       text = $urlQuery;
