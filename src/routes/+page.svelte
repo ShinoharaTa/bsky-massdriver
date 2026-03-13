@@ -65,11 +65,39 @@
     localStorage.setItem("selectedAccounts", JSON.stringify(selectedAccountIds));
   }
 
+  function composeShareText(title: string, sharedText: string, sharedUrl: string): string {
+    const parts: string[] = [];
+
+    if (title) parts.push(title);
+
+    if (sharedText) {
+      const alreadyHasTitle = title && sharedText.startsWith(title);
+      if (!alreadyHasTitle) parts.push(sharedText);
+    }
+
+    if (sharedUrl) {
+      const alreadyInText = sharedText.includes(sharedUrl);
+      if (!alreadyInText) parts.push(sharedUrl);
+    }
+
+    return parts.join("\n").trim();
+  }
+
   onMount(async () => {
     loadTemplateMessages();
     loadHashtagHistory();
 
     const intent = page.url.searchParams.get("intent");
+    const sharedTitle = page.url.searchParams.get("title") ?? "";
+    const sharedText = page.url.searchParams.get("text") ?? "";
+    const sharedUrl = page.url.searchParams.get("url") ?? "";
+    const directShare = composeShareText(sharedTitle, sharedText, sharedUrl);
+    const initialShareText = directShare || intent || "";
+
+    if (initialShareText) {
+      sessionStorage.setItem("pendingShareText", initialShareText);
+    }
+
     const pendingShare = sessionStorage.getItem("pendingShareText");
 
     if (pendingShare) {
@@ -91,7 +119,7 @@
       text = $urlQuery;
       $urlQuery = "";
     }
-    if (intent) goto("/");
+    if (intent || directShare) goto("/", { replaceState: true });
 
     loadAccounts();
     isLoaded = true;

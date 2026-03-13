@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { page } from "$app/state";
 
   function composeShareText(title: string, text: string, url: string): string {
     const parts: string[] = [];
@@ -22,17 +21,18 @@
   }
 
   onMount(() => {
-    const title = page.url.searchParams.get("title") ?? "";
-    const text = page.url.searchParams.get("text") ?? "";
-    const url = page.url.searchParams.get("url") ?? "";
-
-    const composed = composeShareText(title, text, url);
+    const searchParams = new URLSearchParams(window.location.search);
+    const composed = composeShareText(
+      searchParams.get("title") ?? "",
+      searchParams.get("text") ?? "",
+      searchParams.get("url") ?? ""
+    );
 
     if (composed) {
       sessionStorage.setItem("pendingShareText", composed);
     }
 
-    goto("/", { replaceState: true });
+    goto(composed ? `/?intent=${encodeURIComponent(composed)}` : "/", { replaceState: true });
   });
 </script>
 
