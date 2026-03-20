@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount, tick } from "svelte";
   import { page } from "$app/state";
-  import { goto } from "$app/navigation";
+  import { goto, afterNavigate } from "$app/navigation";
   import { v4 as uuidv4 } from "uuid";
   import { preprocessImage } from "../lib/script/image";
   import {
@@ -83,19 +83,34 @@
     return parts.join("\n").trim();
   }
 
+  function extractShareContent(url: URL): string {
+    const title = url.searchParams.get("title") ?? "";
+    const sharedText = url.searchParams.get("text") ?? "";
+    const sharedUrl = url.searchParams.get("url") ?? "";
+    const intent = url.searchParams.get("intent");
+    const composed = composeShareText(title, sharedText, sharedUrl);
+    return composed || intent || "";
+  }
+
+  afterNavigate(({ to, type }) => {
+    if (!to?.url || !isLoaded) return;
+    if (type === "enter") return;
+
+    const shareContent = extractShareContent(to.url);
+    if (shareContent) {
+      text = shareContent;
+      goto("/", { replaceState: true });
+    }
+  });
+
   onMount(async () => {
     loadTemplateMessages();
     loadHashtagHistory();
 
-    const intent = page.url.searchParams.get("intent");
-    const sharedTitle = page.url.searchParams.get("title") ?? "";
-    const sharedText = page.url.searchParams.get("text") ?? "";
-    const sharedUrl = page.url.searchParams.get("url") ?? "";
-    const directShare = composeShareText(sharedTitle, sharedText, sharedUrl);
-    const initialShareText = directShare || intent || "";
+    const shareContent = extractShareContent(page.url);
 
-    if (initialShareText) {
-      sessionStorage.setItem("pendingShareText", initialShareText);
+    if (shareContent) {
+      sessionStorage.setItem("pendingShareText", shareContent);
     }
 
     const pendingShare = sessionStorage.getItem("pendingShareText");
@@ -103,9 +118,6 @@
     if (pendingShare) {
       text = pendingShare;
       $urlQuery = pendingShare;
-    } else if (intent) {
-      text = intent;
-      $urlQuery = intent;
     }
 
     const login = await hasSession();
@@ -119,7 +131,7 @@
       text = $urlQuery;
       $urlQuery = "";
     }
-    if (intent || directShare) goto("/", { replaceState: true });
+    if (shareContent) goto("/", { replaceState: true });
 
     loadAccounts();
     isLoaded = true;
