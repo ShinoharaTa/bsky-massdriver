@@ -200,7 +200,7 @@
   />
 
     <div class="section-title">
-      <span>Notification Types</span>
+      <span>通知タイプ</span>
       <span class="badge">{notificationFeed.length}</span>
   </div>
   <div class="reason-filter-bar">

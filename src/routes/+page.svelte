@@ -13,10 +13,11 @@
     type PostImageInput,
     type StoredAccount,
   } from "../lib/script/bsky";
-  import { isLoading, message, urlQuery } from "../stores/MassDriver";
+  import { isLoading, urlQuery, setMessage } from "../stores/MassDriver";
   import Icon from "../components/Icon.svelte";
   import AccountFilterBar from "../components/AccountFilterBar.svelte";
   import TemplateMessage from "../components/TemplateMessage.svelte";
+  import PostResultPanel from "../components/PostResultPanel.svelte";
 
   let isLoaded = false;
   let text = "";
@@ -38,15 +39,31 @@
     height: number | null;
     outputType: string | null;
     convertedFrom: string | null;
+    alt: string;
   };
   let attachments: AttachmentItem[] = [];
 
   let accounts: StoredAccount[] = [];
   let selectedAccountIds: string[] = [];
   let lastPostResults: MultiPostResult[] = [];
+  let isSubmitting = false;
   let hashtagHistory: string[] = [];
   let cursorStart = 0;
   let cursorEnd = 0;
+  const DRAFT_KEY = "draftText";
+  let draftTimer: ReturnType<typeof setTimeout>;
+
+  function saveDraft() {
+    clearTimeout(draftTimer);
+    draftTimer = setTimeout(() => {
+      localStorage.setItem(DRAFT_KEY, text);
+    }, 500);
+  }
+
+  function clearDraft() {
+    clearTimeout(draftTimer);
+    localStorage.removeItem(DRAFT_KEY);
+  }
 
   function loadTemplateMessages() {
     const storedTexts = localStorage.getItem("texts");
@@ -133,34 +150,41 @@
     }
     if (shareContent) goto("/", { replaceState: true });
 
+    if (!text) {
+      const draft = localStorage.getItem(DRAFT_KEY);
+      if (draft) text = draft;
+    }
+
     loadAccounts();
     isLoaded = true;
   });
-
-  function goToAddAccount() {
-    goto("/login");
-  }
 
   function trimPostContent(postContent: string): string {
     return postContent.replace(/^[ \t\n\r\u3000]+|[ \t\n\r\u3000]+$/g, "");
   }
 
+  function dismissResults() {
+    lastPostResults = [];
+  }
+
   async function submitForm() {
+    if (isSubmitting) return;
     const postText = trimPostContent(text);
     if (!postText.length) return;
     if (!selectedAccountIds.length) {
-      $message = "Select at least one account.";
+      setMessage("投稿先アカウントを1つ以上選択してください。", "warning");
       return;
     }
     if (hasProcessingAttachments) {
-      $message = "Image processing is still running.";
+      setMessage("画像の処理中です。完了までお待ちください。", "warning");
       return;
     }
     if (hasErroredAttachments) {
-      $message = "Fix image errors before posting.";
+      setMessage("エラーのある画像を修正または削除してください。", "warning");
       return;
     }
 
+    isSubmitting = true;
     $isLoading = true;
     try {
       const hashtags = await extractHashtagsFromRichText(postText);
@@ -174,7 +198,7 @@
                   file: item.processedFile,
                   width: item.width,
                   height: item.height,
-                  alt: item.originalFile.name || "",
+                  alt: item.alt || "",
                 },
               ]
             : []
@@ -185,17 +209,25 @@
 
       const successCount = results.filter((item) => item.success).length;
       if (successCount === results.length) {
-        $message = `Post completed! (${successCount}/${results.length})`;
+        setMessage(`投稿完了 (${successCount}/${results.length})`, "success");
         text = "";
+        clearDraft();
         clearAttachments();
       } else if (successCount > 0) {
-        $message = `Post partial success. (${successCount}/${results.length})`;
+        const failedHandles = results
+          .filter((item) => !item.success)
+          .map((item) => `@${item.handle}`)
+          .join(", ");
+        setMessage(`一部失敗: ${failedHandles} (${successCount}/${results.length} 成功)`, "warning");
       } else {
-        $message = "Post failed.";
+        const reason = results[0]?.error ?? "不明なエラー";
+        setMessage(`投稿失敗: ${reason}`, "error");
       }
-    } catch {
-      $message = "Post failed.";
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : "不明なエラー";
+      setMessage(`投稿失敗: ${reason}`, "error");
     } finally {
+      isSubmitting = false;
       $isLoading = false;
     }
   }
@@ -204,7 +236,7 @@
     const postText = trimPostContent(text);
     const uri = encodeURIComponent(postText);
     navigator.clipboard.writeText(location.href + "?intent=" + uri);
-    $message = "Copy to Clipboard.";
+    setMessage("クリップボードにコピーしました。", "success");
   }
 
   function addTemplate() {
@@ -241,7 +273,7 @@
 
   function openImagePicker() {
     if (hasProcessingAttachments) {
-      $message = "Wait until current image processing finishes.";
+      setMessage("画像の処理が完了するまでお待ちください。", "warning");
       return;
     }
     imageInput?.click();
@@ -254,7 +286,7 @@
 
     const incoming = files.slice(0, Math.max(0, 4 - attachments.length));
     if (incoming.length < files.length) {
-      $message = "You can attach up to 4 images.";
+      setMessage("画像は最大4枚まで添付できます。", "warning");
     }
     const placeholders: AttachmentItem[] = incoming.map((file) => ({
       id: crypto.randomUUID(),
@@ -269,6 +301,7 @@
       height: null,
       outputType: null,
       convertedFrom: null,
+      alt: "",
     }));
 
     attachments = [...attachments, ...placeholders];
@@ -279,9 +312,15 @@
         const result = await preprocessImage(placeholder.originalFile);
         attachments = await updateAttachmentAfterProcessing(attachments, placeholder.id, result);
         if (!result.ok) {
-          $message = result.error;
+          setMessage(result.error, "error");
         }
       })
+    );
+  }
+
+  function updateAttachmentAlt(id: string, value: string) {
+    attachments = attachments.map((item) =>
+      item.id === id ? { ...item, alt: value } : item
     );
   }
 
@@ -341,7 +380,10 @@
     hashtagHistory = latestFirst;
   }
 
-  onDestroy(() => clearAttachments());
+  onDestroy(() => {
+    clearAttachments();
+    clearTimeout(draftTimer);
+  });
 
   function mimeShortLabel(type: string | null) {
     if (type === "image/jpeg") return "JPG";
@@ -413,7 +455,7 @@
     {accounts}
     selectedAccountIds={selectedAccountIds}
     toggleAccount={toggleAccount}
-    label="Post Targets"
+    label="投稿先"
   />
 
   <!-- Composer Card -->
@@ -429,8 +471,8 @@
     <textarea
       bind:this={textareaElement}
       bind:value={text}
-      placeholder="What's up?"
-      oninput={syncCursorFromTextarea}
+      placeholder="いまどうしてる？"
+      oninput={() => { syncCursorFromTextarea(); saveDraft(); }}
       onclick={syncCursorFromTextarea}
       onkeyup={syncCursorFromTextarea}
       onselect={syncCursorFromTextarea}
@@ -457,7 +499,7 @@
               {#if attachment.status !== "processing"}
                 <button
                   class="image-thumb-remove"
-                  title="Remove image"
+                  title="画像を削除"
                   onclick={() => removeAttachment(attachment.id)}
                 >
                   ×
@@ -478,6 +520,13 @@
                     {mimeShortLabel(attachment.convertedFrom)}→{mimeShortLabel(attachment.outputType)}
                   </span>
                 {/if}
+                <input
+                  type="text"
+                  class="alt-input"
+                  placeholder="ALT"
+                  value={attachment.alt}
+                  oninput={(e) => updateAttachmentAlt(attachment.id, (e.target as HTMLInputElement).value)}
+                />
               {/if}
             </div>
           </div>
@@ -486,39 +535,32 @@
     {/if}
 
     <div class="composer-footer">
-      <span class="char-count" class:warn={charCount > 250} class:over={charCount > 300}>
-        {charCount} / 300
-      </span>
-      <div class="toolbar">
-        <button onclick={addTemplate} class="btn btn-outline btn-sm" title="Save as template">+ Template</button>
-        <button onclick={copyPostUrl} class="btn btn-outline btn-sm" title="Copy share URL">Copy URL</button>
-        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-attach btn-icon-only" aria-label="画像を添付"><Icon name="image" size={16} /></button>
-        <button onclick={submitForm} class="btn btn-primary">Lift Off!</button>
+      <div class="composer-footer-left">
+        <span class="char-count" class:warn={charCount > 250} class:over={charCount > 300}>
+          {charCount} / 300
+        </span>
+        <div class="secondary-actions">
+          <button onclick={addTemplate} class="btn btn-ghost btn-sm btn-icon-only" title="テンプレートに保存" aria-label="テンプレートに保存"><Icon name="plus" size={14} /></button>
+          <button onclick={copyPostUrl} class="btn btn-ghost btn-sm btn-icon-only" title="共有URLをコピー" aria-label="共有URLをコピー"><Icon name="external-link" size={14} /></button>
+        </div>
+      </div>
+      <div class="primary-actions">
+        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-icon-only" aria-label="画像を添付"><Icon name="image" size={16} /></button>
+        <button onclick={submitForm} class="btn btn-primary" disabled={isSubmitting}>
+          {isSubmitting ? "送信中..." : "Lift Off!"}
+        </button>
       </div>
     </div>
   </section>
 
   {#if lastPostResults.length > 0}
-    <div class="section-title">
-      <span>Post Results</span>
-      <span class="badge">{lastPostResults.filter((item) => item.success).length}/{lastPostResults.length}</span>
-    </div>
-    <section class="results-list">
-      {#each lastPostResults as result (result.accountId)}
-        <div class="result-item">
-          <span class="result-handle">@{result.handle}</span>
-          <span class="result-status" class:ok={result.success} class:fail={!result.success}>
-            {result.success ? "Success" : "Failed"}
-          </span>
-        </div>
-      {/each}
-    </section>
+    <PostResultPanel results={lastPostResults} onDismiss={dismissResults} />
   {/if}
 
   <!-- Templates -->
   {#if templateMessages.length > 0}
     <div class="section-title">
-      <span>Templates</span>
+      <span>テンプレート</span>
       <span class="badge">{templateMessages.length}</span>
     </div>
     <section class="template-list">
@@ -639,6 +681,25 @@
   .image-converted {
     color: var(--primary);
   }
+  .alt-input {
+    margin-top: 3px;
+    width: 100%;
+    padding: 2px 4px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--panel-soft);
+    color: var(--text);
+    font-size: var(--font-2xs);
+    font-family: inherit;
+  }
+  .alt-input:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  .alt-input::placeholder {
+    color: var(--muted);
+    font-weight: 600;
+  }
 
   .composer-footer {
     display: flex;
@@ -646,6 +707,12 @@
     justify-content: space-between;
     margin-top: 10px;
     gap: 6px;
+  }
+  .composer-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
   }
   .char-count {
     font-size: var(--font-sm);
@@ -655,53 +722,26 @@
   }
   .char-count.warn { color: var(--warning); }
   .char-count.over { color: var(--danger); font-weight: 600; }
-  .toolbar {
+  .secondary-actions {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+  }
+  .primary-actions {
     display: flex;
     gap: 6px;
     align-items: center;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    flex-shrink: 0;
   }
 
   .template-list {
     display: grid;
     gap: 4px;
   }
-  .results-list {
-    margin-top: 6px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-  }
-  .result-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 10px;
-    border-top: 1px solid var(--border);
-    background: rgba(0, 0, 0, 0.02);
-    font-size: var(--font-sm);
-  }
-  .result-item:first-child {
-    border-top: none;
-  }
-  .result-handle {
-    color: var(--text);
-  }
-  .result-status.ok {
-    color: var(--success);
-    font-weight: 600;
-  }
-  .result-status.fail {
-    color: var(--danger);
-    font-weight: 600;
-  }
-
   @media (max-width: 480px) {
     textarea { min-height: 80px; font-size: var(--font-base); padding: 10px; }
     .image-thumb-group { width: 60px; }
     .image-thumb { width: 44px; height: 44px; }
-    .composer-footer { flex-wrap: wrap; }
-    .toolbar { gap: 4px; }
+    .primary-actions { gap: 4px; }
   }
 </style>

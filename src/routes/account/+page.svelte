@@ -6,10 +6,11 @@
     getStoredAccounts,
     hasSession,
     login,
+    MAX_ACCOUNTS,
     removeStoredAccount,
     type StoredAccount,
   } from "../../lib/script/bsky";
-  import { isLoading, message } from "../../stores/MassDriver";
+  import { isLoading, setMessage } from "../../stores/MassDriver";
 
   let isLoaded = $state(false);
   let accounts: StoredAccount[] = $state([]);
@@ -44,7 +45,7 @@
       await login(username, password);
       username = "";
       password = "";
-      $message = "ログインしました";
+      setMessage("ログインしました", "success");
       await loadAccounts();
     } catch (error: any) {
       errorMessage = String(error);
@@ -58,7 +59,7 @@
     if (!ok) return;
     removeStoredAccount(accountId);
     await loadAccounts();
-    $message = "アカウントを削除しました";
+    setMessage("アカウントを削除しました", "success");
   }
 </script>
 
@@ -68,7 +69,10 @@
   </div>
 
   {#if accounts.length > 0}
-    <div class="section-title">登録済み</div>
+    <div class="section-title">
+      <span>登録済み</span>
+      <span class="badge">{accounts.length}/{MAX_ACCOUNTS}</span>
+    </div>
     <div class="account-list">
       {#each accounts as account (account.id)}
         <div class="existing-account-item">
@@ -128,6 +132,22 @@
         <button type="submit" class="btn btn-primary">ログイン</button>
       </div>
     </form>
+  </div>
+
+  <div class="section-title" style="margin-top: 24px">ヘルプ / その他</div>
+  <div class="help-links">
+    <a href="/information" class="help-link-item">
+      <Icon name="info" size={16} />
+      <span>使い方ガイド</span>
+    </a>
+    <a href="https://github.com/ShinoharaTa/bsky-massdriver" target="_blank" rel="noreferrer" class="help-link-item">
+      <Icon name="external-link" size={16} />
+      <span>GitHub</span>
+    </a>
+    <a href="https://github.com/ShinoharaTa/bsky-massdriver/issues" target="_blank" rel="noreferrer" class="help-link-item">
+      <Icon name="help" size={16} />
+      <span>不具合報告・要望</span>
+    </a>
   </div>
 {/if}
 
@@ -239,5 +259,28 @@
   }
   .help-link:hover {
     color: var(--primary);
+  }
+
+  .help-links {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .help-link-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: var(--font-sm);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .help-link-item:hover {
+    border-color: var(--border-light);
+    background: var(--panel-soft);
+    color: var(--text);
   }
 </style>

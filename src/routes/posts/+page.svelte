@@ -13,7 +13,7 @@
     type StoredAccount,
     type TimelineCursorByAccount,
   } from "../../lib/script/bsky";
-  import { isLoading, message } from "../../stores/MassDriver";
+  import { isLoading, setMessage } from "../../stores/MassDriver";
 
   let isLoaded = false;
   let isLoadingMore = false;
@@ -86,9 +86,9 @@
     try {
       await deleteManagedPost(item.accountId, item.uri);
       posts = posts.filter((post) => post.id !== item.id);
-      $message = "Post deleted.";
+      setMessage("投稿を削除しました。", "success");
     } catch (error) {
-      $message = error instanceof Error ? error.message : "Delete failed.";
+      setMessage(error instanceof Error ? error.message : "削除に失敗しました。", "error");
     } finally {
       deletingPostIds = deletingPostIds.filter((id) => id !== item.id);
     }

@@ -15,7 +15,7 @@
 <article class="template-item">
   <button class="template-text" onclick={() => setText(item.text)}>{item.text}</button>
   <div class="template-actions">
-    <button class="btn btn-ghost btn-sm btn-icon-only" title="Use" onclick={() => setText(item.text)}><Icon name="corner-down-left" size={16} /></button>
+    <button class="btn btn-ghost btn-sm btn-icon-only" title="使用する" onclick={() => setText(item.text)}><Icon name="corner-down-left" size={16} /></button>
     <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteTemplateItem(item.key)} aria-label="削除"><Icon name="trash" size={16} /></button>
   </div>
 </article>

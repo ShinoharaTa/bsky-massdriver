@@ -161,7 +161,7 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
   }
 }
 
-function fitWithinBounds(width: number, height: number, maxDimension: number) {
+export function fitWithinBounds(width: number, height: number, maxDimension: number) {
   const longest = Math.max(width, height);
   if (longest <= maxDimension) return { width, height };
   const scale = maxDimension / longest;
@@ -248,17 +248,17 @@ async function encodeLossyWithinLimit(
   return null;
 }
 
-function renameFileExtension(fileName: string, type: string) {
+export function renameFileExtension(fileName: string, type: string) {
   const suffix = type === "image/jpeg" ? ".jpg" : type === "image/webp" ? ".webp" : "";
   if (!suffix) return fileName;
   return fileName.replace(/\.[^.]+$/u, "") + suffix;
 }
 
-function formatKB(bytes: number) {
+export function formatKB(bytes: number) {
   return (bytes / 1024).toFixed(2);
 }
 
-function mimeLabel(type: string) {
+export function mimeLabel(type: string) {
   if (type === "image/jpeg") return "JPEG";
   if (type === "image/webp") return "WebP";
   if (type === "image/png") return "PNG";

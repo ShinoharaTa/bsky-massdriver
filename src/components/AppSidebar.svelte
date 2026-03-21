@@ -51,6 +51,11 @@
     {/each}
   </nav>
 
+  <div class="sidebar-footer-links">
+    <a href="/information" class="sidebar-footer-link">使い方</a>
+    <a href="https://github.com/ShinoharaTa/bsky-massdriver" target="_blank" rel="noreferrer" class="sidebar-footer-link">GitHub</a>
+  </div>
+
   <div class="sidebar-accounts">
     {#each accounts as account (account.id)}
       <div class="sidebar-account-item">
@@ -140,8 +145,23 @@
     flex-shrink: 0;
   }
 
-  .sidebar-accounts {
+  .sidebar-footer-links {
     margin-top: auto;
+    display: flex;
+    gap: 12px;
+    padding: 8px 10px 4px;
+  }
+  .sidebar-footer-link {
+    font-size: var(--font-2xs);
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .sidebar-footer-link:hover {
+    color: var(--primary);
+  }
+
+  .sidebar-accounts {
+    margin-top: 0;
     display: flex;
     flex-direction: column;
     gap: 4px;

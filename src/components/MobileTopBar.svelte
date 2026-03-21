@@ -26,7 +26,7 @@
     <img src="/massdriver-icon.svg" width="20" height="20" alt="Mass Driver" />
     <h1>Mass Driver</h1>
   </div>
-  <div class="avatar-group">
+  <a href="/account" class="avatar-group" aria-label="アカウント設定">
     {#each accounts as account (account.id)}
       {#if accountAvatars[account.id]}
         <img
@@ -40,7 +40,7 @@
         </div>
       {/if}
     {/each}
-  </div>
+  </a>
 </header>
 
 <style>
@@ -69,6 +69,7 @@
 
   .avatar-group {
     display: flex;
+    text-decoration: none;
   }
   .topbar-avatar {
     width: 24px;

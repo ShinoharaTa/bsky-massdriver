@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
+  import Icon from "../../components/Icon.svelte";
   import {
     getProfileForAccount,
     getStoredAccounts,
@@ -34,6 +35,7 @@
   async function handleLogin(): Promise<void> {
     try {
       $isLoading = true;
+      errorMessage = "";
       await login(username, password);
       $isLoading = false;
       goto("/");
@@ -64,7 +66,7 @@
       <div class="saved-title">保存済みアカウント</div>
       {#each accounts as account (account.id)}
         <div class="saved-item">
-          <div class="saved-meta">
+          <a href="/" class="saved-meta">
             <div class="saved-avatar">
               {#if accountAvatars[account.id]}
                 <img src={accountAvatars[account.id] ?? ""} alt={account.handle} class="saved-avatar-image" />
@@ -74,21 +76,25 @@
             </div>
             <div class="saved-copy">
               <div class="saved-handle">@{account.handle}</div>
-              <div class="saved-status">保存済み</div>
+              <div class="saved-status">ログイン済み</div>
             </div>
-          </div>
+          </a>
           <div class="saved-actions">
-            <button class="btn btn-danger btn-sm" onclick={() => deleteAccount(account.id)}>削除</button>
+            <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteAccount(account.id)} aria-label="削除">
+              <Icon name="trash" size={14} />
+            </button>
           </div>
         </div>
       {/each}
+      <a href="/" class="btn btn-primary btn-block">投稿画面へ</a>
     </section>
   {/if}
 
   <section class="card login-card">
+    <div class="login-card-title">アカウント追加</div>
     <form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
       <div class="form-group">
-        <label for="handle">Handle</label>
+        <label for="handle">ハンドル</label>
         <input
           class="form-input"
           id="handle"
@@ -99,7 +105,7 @@
         />
       </div>
       <div class="form-group">
-        <label for="password">App Password</label>
+        <label for="password">アプリパスワード</label>
         <input
           class="form-input"
           id="password"
@@ -108,16 +114,21 @@
           placeholder="xxxx-xxxx-xxxx-xxxx"
           required
         />
+        <p class="form-hint">
+          通常のパスワードではありません。
+          <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noreferrer">Bluesky の設定画面</a>
+          で発行してください。
+        </p>
       </div>
       {#if errorMessage}
         <p class="error-msg">{errorMessage}</p>
       {/if}
       <div class="login-actions">
         <div class="login-links">
-          <a href="https://bsky.app" target="_blank" rel="noreferrer">Sign Up</a>
-          <a href="/information">How To</a>
+          <a href="https://bsky.app" target="_blank" rel="noreferrer">アカウント作成</a>
+          <a href="/information">使い方</a>
         </div>
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-primary">ログイン</button>
       </div>
     </form>
   </section>
@@ -150,6 +161,13 @@
   .login-card {
     margin-top: 16px;
   }
+  .login-card-title {
+    font-size: var(--font-xs);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
   .saved-accounts {
     margin-top: 18px;
   }
@@ -172,18 +190,24 @@
     border-top: none;
     padding-top: 0;
   }
+  .saved-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+  }
+  .saved-meta:hover .saved-handle {
+    color: var(--primary);
+  }
   .saved-handle {
     font-size: var(--font-base);
     color: var(--text);
     min-width: 0;
     word-break: break-all;
     font-weight: 600;
-  }
-  .saved-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
+    transition: color 0.15s;
   }
   .saved-avatar {
     width: 32px;
@@ -217,6 +241,12 @@
     gap: 6px;
     flex-shrink: 0;
   }
+  :global(.btn-block) {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: 12px;
+  }
   .form-group {
     margin-top: 14px;
   }
@@ -230,6 +260,19 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
+  }
+  .form-hint {
+    margin-top: 6px;
+    font-size: var(--font-xs);
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .form-hint a {
+    color: var(--primary);
+    text-decoration: none;
+  }
+  .form-hint a:hover {
+    text-decoration: underline;
   }
   .error-msg {
     margin-top: 10px;

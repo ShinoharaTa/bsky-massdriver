@@ -11,6 +11,7 @@ const ACCOUNTS_KEY = "accounts";
 const ACTIVE_ACCOUNT_KEY = "activeAccountId";
 export const BSKY_IMAGE_MAX_BYTES = 1_000_000;
 export const BSKY_IMAGE_MAX_DIMENSION = 2000;
+export const MAX_ACCOUNTS = 10;
 
 export type StoredAccount = {
   id: string;
@@ -80,6 +81,7 @@ export type ManagedPost = {
   indexedAt: string;
   text: string;
   hasMedia: boolean;
+  images: { thumb: string; fullsize: string; alt: string }[];
   metrics: ManagedPostMetrics;
   replyParentUri: string | null;
 };
@@ -115,11 +117,11 @@ function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
 }
 
-function createCursorMap(accountIds: string[], existing: TimelineCursorByAccount = {}): TimelineCursorByAccount {
+export function createCursorMap(accountIds: string[], existing: TimelineCursorByAccount = {}): TimelineCursorByAccount {
   return Object.fromEntries(accountIds.map((accountId) => [accountId, existing[accountId] ?? null]));
 }
 
-function sortTimelineDesc<T extends { indexedAt: string }>(items: T[]): T[] {
+export function sortTimelineDesc<T extends { indexedAt: string }>(items: T[]): T[] {
   return [...items].sort((left, right) => {
     const rightTime = new Date(right.indexedAt).getTime();
     const leftTime = new Date(left.indexedAt).getTime();
@@ -134,8 +136,8 @@ function extractRecordText(record: unknown): string {
   return "";
 }
 
-function chunkItems<T>(items: T[], size: number): T[][];
-function chunkItems<T>(items: T[], size: number): T[][] {
+export function chunkItems<T>(items: T[], size: number): T[][];
+export function chunkItems<T>(items: T[], size: number): T[][] {
   const chunks: T[][] = [];
   for (let index = 0; index < items.length; index += size) {
     chunks.push(items.slice(index, index + size));
@@ -143,7 +145,7 @@ function chunkItems<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
-function normalizeNotificationReason(reason: unknown): AccountNotificationReason {
+export function normalizeNotificationReason(reason: unknown): AccountNotificationReason {
   switch (reason) {
     case "reply":
     case "mention":
@@ -230,6 +232,30 @@ function hasMediaEmbed(postView: unknown): boolean {
   return embedType.includes("images") || embedType.includes("video") || embedType.includes("media");
 }
 
+function extractImagesFromEmbed(postView: unknown): { thumb: string; fullsize: string; alt: string }[] {
+  if (!isRecord(postView) || !isRecord(postView.embed)) return [];
+  const embed = postView.embed;
+  let imagesData: unknown[] = [];
+
+  // app.bsky.embed.images#view
+  if (embed.$type === "app.bsky.embed.images#view" && Array.isArray(embed.images)) {
+    imagesData = embed.images;
+  }
+  // app.bsky.embed.recordWithMedia#view (メディア付き引用RPなど)
+  else if (embed.$type === "app.bsky.embed.recordWithMedia#view" && isRecord(embed.media) && embed.media.$type === "app.bsky.embed.images#view" && Array.isArray(embed.media.images)) {
+    imagesData = embed.media.images;
+  }
+
+  return imagesData.map(img => {
+    if (!isRecord(img)) return null;
+    return {
+      thumb: toOptionalString(img.thumb) ?? "",
+      fullsize: toOptionalString(img.fullsize) ?? "",
+      alt: toOptionalString(img.alt) ?? "",
+    };
+  }).filter((img): img is { thumb: string; fullsize: string; alt: string } => img !== null && img.thumb !== "");
+}
+
 function normalizeManagedPost(account: StoredAccount, entry: unknown): ManagedPost | null {
   if (!isRecord(entry) || !isRecord(entry.post)) return null;
   if (entry.reason) return null;
@@ -256,6 +282,7 @@ function normalizeManagedPost(account: StoredAccount, entry: unknown): ManagedPo
     indexedAt,
     text: extractRecordText(postView.record).trim(),
     hasMedia: hasMediaEmbed(postView),
+    images: extractImagesFromEmbed(postView),
     metrics: {
       likeCount: toNumberOrZero(postView.likeCount),
       repostCount: toNumberOrZero(postView.repostCount),
@@ -392,6 +419,14 @@ export function removeStoredAccount(accountId: string): void {
 export async function login(username: string, password: string): Promise<void> {
   if (!browser) return;
 
+  const existing = readAccounts();
+  const isNewAccount = !existing.some(
+    (a) => a.handle.toLowerCase() === username.toLowerCase()
+  );
+  if (isNewAccount && existing.length >= MAX_ACCOUNTS) {
+    throw new Error(`登録できるアカウントは最大${MAX_ACCOUNTS}件です。不要なアカウントを削除してください。`);
+  }
+
   let persistedSession: AtpSessionData | null = null;
   const loginAgent = new AtpAgent({
     service: SERVICE,
@@ -422,7 +457,7 @@ export async function hasSession(): Promise<boolean> {
   const accounts = readAccounts();
   if (!accounts.length) {
     setCurrentAccount(null);
-    setMessage("Please Login.");
+    setMessage("アカウントを追加してはじめましょう。", "info");
     goto("/login");
     return false;
   }
@@ -431,7 +466,7 @@ export async function hasSession(): Promise<boolean> {
   const active = accounts.find((account) => account.id === activeId) ?? accounts[0];
   if (!active) {
     setCurrentAccount(null);
-    setMessage("Please Login.");
+    setMessage("アカウントを追加してはじめましょう。", "info");
     goto("/login");
     return false;
   }
@@ -446,7 +481,7 @@ export async function hasSession(): Promise<boolean> {
     const remain = readAccounts();
     if (!remain.length) {
       setCurrentAccount(null);
-      setMessage("Please Login.");
+      setMessage("セッションが期限切れになりました。アプリパスワードで再ログインしてください。", "warning");
       goto("/login");
       return false;
     }

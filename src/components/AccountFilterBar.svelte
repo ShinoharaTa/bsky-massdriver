@@ -6,7 +6,7 @@
     accounts,
     selectedAccountIds,
     toggleAccount,
-    label = "Accounts",
+    label = "アカウント",
   }: {
     accounts: StoredAccount[];
     selectedAccountIds: string[];
