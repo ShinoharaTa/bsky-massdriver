@@ -8,6 +8,23 @@ const SUPPORTED_IMAGE_TYPES = new Set([
 
 const LOSSY_QUALITIES = [0.92, 0.84, 0.76, 0.68, 0.6, 0.52, 0.44, 0.36];
 
+export type ImagePreprocessConfig = {
+  maxBytes: number;
+  maxDimension: number;
+  forceWebP?: boolean;
+};
+
+export const BLUESKY_IMAGE_CONFIG: ImagePreprocessConfig = {
+  maxBytes: BSKY_IMAGE_MAX_BYTES,
+  maxDimension: BSKY_IMAGE_MAX_DIMENSION,
+};
+
+export const NOSTR_IMAGE_CONFIG: ImagePreprocessConfig = {
+  maxBytes: 1_000_000,
+  maxDimension: 2000,
+  forceWebP: true,
+};
+
 export type ProcessedImageResult =
   | {
       ok: true;
@@ -34,7 +51,10 @@ type LoadedImage = {
   cleanup: () => void;
 };
 
-export async function preprocessImage(file: File): Promise<ProcessedImageResult> {
+export async function preprocessImage(
+  file: File,
+  config: ImagePreprocessConfig = BLUESKY_IMAGE_CONFIG
+): Promise<ProcessedImageResult> {
   if (!SUPPORTED_IMAGE_TYPES.has(file.type)) {
     return {
       ok: false,
@@ -45,12 +65,15 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
     };
   }
 
+  const { maxBytes, maxDimension, forceWebP } = config;
   const loaded = await loadImage(file);
-  const { width, height } = fitWithinBounds(loaded.width, loaded.height, BSKY_IMAGE_MAX_DIMENSION);
+  const { width, height } = fitWithinBounds(loaded.width, loaded.height, maxDimension);
   const resized = width !== loaded.width || height !== loaded.height;
+  const outputType = forceWebP ? "image/webp" : file.type;
+  const needsConversion = !!forceWebP && file.type !== "image/webp";
 
   try {
-    if (!resized && file.size <= BSKY_IMAGE_MAX_BYTES) {
+    if (!resized && !needsConversion && file.size <= maxBytes) {
       return {
         ok: true,
         file,
@@ -63,7 +86,10 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
       };
     }
 
-    const canvas = renderToCanvas(loaded.bitmap, width, height);
+    const bgColor = (outputType === "image/jpeg" || (file.type === "image/png" && outputType !== "image/png"))
+      ? "#ffffff"
+      : undefined;
+    const canvas = renderToCanvas(loaded.bitmap, width, height, bgColor);
     if (!canvas) {
       return {
         ok: false,
@@ -74,8 +100,8 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
       };
     }
 
-    if (file.type === "image/png") {
-      const pngBlob = await canvasToBlob(canvas, file.type);
+    if (outputType === "image/png" && !forceWebP) {
+      const pngBlob = await canvasToBlob(canvas, "image/png");
       if (!pngBlob) {
         return {
           ok: false,
@@ -85,7 +111,7 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
           bytes: file.size,
         };
       }
-      if (pngBlob.size > BSKY_IMAGE_MAX_BYTES) {
+      if (pngBlob.size > maxBytes) {
         const jpegCanvas = renderToCanvas(loaded.bitmap, width, height, "#ffffff");
         if (!jpegCanvas) {
           return {
@@ -96,7 +122,7 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
             bytes: pngBlob.size,
           };
         }
-        const jpegResult = await encodeLossyWithinLimit(jpegCanvas, file, "image/jpeg");
+        const jpegResult = await encodeLossyWithinLimit(jpegCanvas, file, "image/jpeg", maxBytes);
         if (jpegResult) {
           return {
             ok: true,
@@ -111,7 +137,7 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
         }
         return {
           ok: false,
-          error: `PNG は JPEG 変換後も上限 ${formatKB(BSKY_IMAGE_MAX_BYTES)}KB に収まりませんでした。`,
+          error: `PNG は JPEG 変換後も上限 ${formatKB(maxBytes)}KB に収まりませんでした。`,
           width,
           height,
           bytes: pngBlob.size,
@@ -133,7 +159,8 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
       };
     }
 
-    const lossyResult = await encodeLossyWithinLimit(canvas, file, file.type);
+    const targetType = forceWebP ? "image/webp" : outputType;
+    const lossyResult = await encodeLossyWithinLimit(canvas, file, targetType, maxBytes);
     if (lossyResult) {
       return {
         ok: true,
@@ -141,7 +168,7 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
         width,
         height,
         bytes: lossyResult.file.size,
-        resized: true,
+        resized: resized || needsConversion,
         outputType: lossyResult.file.type,
         convertedFrom: lossyResult.convertedFrom,
       };
@@ -149,9 +176,7 @@ export async function preprocessImage(file: File): Promise<ProcessedImageResult>
 
     return {
       ok: false,
-      error: `${mimeLabel(file.type)} は縮小・圧縮後も上限 ${formatKB(
-        BSKY_IMAGE_MAX_BYTES
-      )}KB に収まりませんでした。`,
+      error: `${mimeLabel(file.type)} は縮小・圧縮後も上限 ${formatKB(maxBytes)}KB に収まりませんでした。`,
       width,
       height,
       bytes: file.size,
@@ -230,12 +255,13 @@ function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality?: number)
 async function encodeLossyWithinLimit(
   canvas: HTMLCanvasElement,
   file: File,
-  outputType: "image/jpeg" | "image/webp" | string
+  outputType: "image/jpeg" | "image/webp" | string,
+  maxBytes: number = BSKY_IMAGE_MAX_BYTES
 ) {
   for (const quality of LOSSY_QUALITIES) {
     const blob = await canvasToBlob(canvas, outputType, quality);
     if (!blob) continue;
-    if (blob.size <= BSKY_IMAGE_MAX_BYTES) {
+    if (blob.size <= maxBytes) {
       return {
         file: new File([blob], renameFileExtension(file.name, outputType), {
           type: outputType,

@@ -13,6 +13,10 @@
     toggleAccount: (accountId: string) => void;
     label?: string;
   } = $props();
+
+  function platformLabel(account: StoredAccount): string {
+    return account.platform === "nostr" ? "Nostr" : "Bsky";
+  }
 </script>
 
 <div class="section-title">
@@ -28,6 +32,7 @@
       onclick={() => toggleAccount(account.id)}
     >
       <span class="check">{#if selectedAccountIds.includes(account.id)}<Icon name="check" size={10} />{/if}</span>
+      <span class="platform-tag" class:nostr={account.platform === "nostr"}>{platformLabel(account)}</span>
       <span class="chip-handle">@{account.handle}</span>
     </button>
   {/each}
@@ -78,6 +83,23 @@
     background: var(--primary);
     color: var(--panel);
     font-weight: 700;
+  }
+
+  .platform-tag {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(56, 189, 248, 0.15);
+    color: rgba(56, 189, 248, 0.9);
+    line-height: 1.3;
+  }
+
+  .platform-tag.nostr {
+    background: rgba(139, 92, 246, 0.15);
+    color: rgba(139, 92, 246, 0.9);
   }
 
   .chip-handle {

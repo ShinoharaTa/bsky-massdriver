@@ -4,24 +4,43 @@ import { goto } from "$app/navigation";
 import { AtpAgent, RichText } from "@atproto/api";
 import type { AtpPersistSessionHandler, AtpSessionData } from "@atproto/api";
 import { setMessage } from "../../stores/MassDriver";
+import {
+  readAccounts,
+  writeAccounts,
+  getAccountById,
+  getActiveAccountId,
+  setActiveAccountId,
+  removeStoredAccount,
+  getStoredAccounts,
+  addAccount,
+  isBlueskyAccount,
+  isNostrAccount,
+  type BlueskyStoredAccount,
+  type StoredAccount,
+  type Platform,
+  type NostrStoredAccount,
+} from "./accounts";
+
+export {
+  getStoredAccounts,
+  getActiveAccountId,
+  removeStoredAccount,
+  type StoredAccount,
+  type BlueskyStoredAccount,
+  type NostrStoredAccount,
+  type Platform,
+};
+export { MAX_ACCOUNTS } from "./accounts";
+export { isBlueskyAccount, isNostrAccount } from "./accounts";
 
 const SERVICE = "https://bsky.social";
-const LEGACY_SESSION_KEY = "sess";
-const ACCOUNTS_KEY = "accounts";
-const ACTIVE_ACCOUNT_KEY = "activeAccountId";
 export const BSKY_IMAGE_MAX_BYTES = 1_000_000;
 export const BSKY_IMAGE_MAX_DIMENSION = 2000;
-export const MAX_ACCOUNTS = 10;
-
-export type StoredAccount = {
-  id: string;
-  handle: string;
-  session: AtpSessionData;
-};
 
 export type MultiPostResult = {
   accountId: string;
   handle: string;
+  platform: Platform;
   success: boolean;
   error?: string;
 };
@@ -211,7 +230,7 @@ async function resolveNotificationSubjectTexts(
         textByUri[uri] = text;
       }
     } catch {
-      // 通知一覧の表示自体は継続する
+      // keep showing the notification list
     }
   }
 
@@ -237,12 +256,9 @@ function extractImagesFromEmbed(postView: unknown): { thumb: string; fullsize: s
   const embed = postView.embed;
   let imagesData: unknown[] = [];
 
-  // app.bsky.embed.images#view
   if (embed.$type === "app.bsky.embed.images#view" && Array.isArray(embed.images)) {
     imagesData = embed.images;
-  }
-  // app.bsky.embed.recordWithMedia#view (メディア付き引用RPなど)
-  else if (embed.$type === "app.bsky.embed.recordWithMedia#view" && isRecord(embed.media) && embed.media.$type === "app.bsky.embed.images#view" && Array.isArray(embed.media.images)) {
+  } else if (embed.$type === "app.bsky.embed.recordWithMedia#view" && isRecord(embed.media) && embed.media.$type === "app.bsky.embed.images#view" && Array.isArray(embed.media.images)) {
     imagesData = embed.media.images;
   }
 
@@ -256,7 +272,7 @@ function extractImagesFromEmbed(postView: unknown): { thumb: string; fullsize: s
   }).filter((img): img is { thumb: string; fullsize: string; alt: string } => img !== null && img.thumb !== "");
 }
 
-function normalizeManagedPost(account: StoredAccount, entry: unknown): ManagedPost | null {
+function normalizeManagedPost(account: BlueskyStoredAccount, entry: unknown): ManagedPost | null {
   if (!isRecord(entry) || !isRecord(entry.post)) return null;
   if (entry.reason) return null;
 
@@ -298,9 +314,12 @@ function updateStoredAccountSession(accountId: string, session: AtpSessionData):
   const index = accounts.findIndex((account) => account.id === accountId);
   if (index === -1) return;
 
-  const updatedAccount: StoredAccount = {
-    ...accounts[index],
-    handle: session.handle ?? accounts[index].handle,
+  const existing = accounts[index];
+  if (!isBlueskyAccount(existing)) return;
+
+  const updatedAccount: BlueskyStoredAccount = {
+    ...existing,
+    handle: session.handle ?? existing.handle,
     session,
   };
   accounts[index] = updatedAccount;
@@ -311,19 +330,19 @@ function updateStoredAccountSession(accountId: string, session: AtpSessionData):
   }
 }
 
-function createPersistSessionHandler(getAccountId: () => string | null): AtpPersistSessionHandler {
+function createPersistSessionHandler(getAccountIdFn: () => string | null): AtpPersistSessionHandler {
   return (evt, session) => {
     if (!browser) return;
 
     if (evt === "create" || evt === "update") {
       if (!session) return;
-      const accountId = getAccountId() ?? session.did;
+      const accountId = getAccountIdFn() ?? session.did;
       updateStoredAccountSession(accountId, session);
       return;
     }
 
     if (evt === "expired") {
-      const accountId = getAccountId();
+      const accountId = getAccountIdFn();
       if (accountId) removeStoredAccount(accountId);
     }
   };
@@ -334,32 +353,12 @@ const activeAgent = new AtpAgent({
   persistSession: createPersistSessionHandler(() => currentAccountId),
 });
 
-function readAccounts(): StoredAccount[] {
-  if (!browser) return [];
-  const raw = localStorage.getItem(ACCOUNTS_KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw) as StoredAccount[];
-  } catch {
-    return [];
-  }
-}
-
-function writeAccounts(accounts: StoredAccount[]) {
-  if (!browser) return;
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-}
-
-function getAccountById(accountId: string): StoredAccount | null {
-  return readAccounts().find((account) => account.id === accountId) ?? null;
-}
-
 function setCurrentAccount(account: StoredAccount | null) {
   currentAccountId = account?.id ?? null;
   currentHandle = account?.handle ?? "";
 }
 
-function createAgentForSession(account: StoredAccount) {
+export function createAgentForSession(account: BlueskyStoredAccount) {
   const agent = new AtpAgent({
     service: SERVICE,
     persistSession: createPersistSessionHandler(() => account.id),
@@ -367,65 +366,14 @@ function createAgentForSession(account: StoredAccount) {
   return { agent, resume: () => agent.resumeSession(account.session) };
 }
 
-function migrateLegacySession() {
-  if (!browser) return;
-  const hasAccounts = !!localStorage.getItem(ACCOUNTS_KEY);
-  const legacy = localStorage.getItem(LEGACY_SESSION_KEY);
-  if (hasAccounts || !legacy) return;
-  try {
-    const sess = JSON.parse(legacy) as AtpSessionData;
-    const account: StoredAccount = {
-      id: sess.did ?? crypto.randomUUID(),
-      handle: sess.handle ?? "",
-      session: sess,
-    };
-    writeAccounts([account]);
-    localStorage.setItem(ACTIVE_ACCOUNT_KEY, account.id);
-  } finally {
-    localStorage.removeItem(LEGACY_SESSION_KEY);
-  }
-}
-
-export function getStoredAccounts(): StoredAccount[] {
-  migrateLegacySession();
-  return readAccounts();
-}
-
-export function getActiveAccountId(): string | null {
-  if (!browser) return null;
-  return localStorage.getItem(ACTIVE_ACCOUNT_KEY);
-}
-
 export function setActiveAccount(accountId: string): void {
-  if (!browser) return;
-  localStorage.setItem(ACTIVE_ACCOUNT_KEY, accountId);
+  setActiveAccountId(accountId);
   const account = getAccountById(accountId);
   setCurrentAccount(account);
 }
 
-export function removeStoredAccount(accountId: string): void {
-  if (!browser) return;
-  const nextAccounts = readAccounts().filter((account) => account.id !== accountId);
-  writeAccounts(nextAccounts);
-  const active = getActiveAccountId();
-  if (active === accountId) {
-    const nextActive = nextAccounts[0]?.id ?? null;
-    if (nextActive) localStorage.setItem(ACTIVE_ACCOUNT_KEY, nextActive);
-    else localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
-    setCurrentAccount(nextAccounts[0] ?? null);
-  }
-}
-
 export async function login(username: string, password: string): Promise<void> {
   if (!browser) return;
-
-  const existing = readAccounts();
-  const isNewAccount = !existing.some(
-    (a) => a.handle.toLowerCase() === username.toLowerCase()
-  );
-  if (isNewAccount && existing.length >= MAX_ACCOUNTS) {
-    throw new Error(`登録できるアカウントは最大${MAX_ACCOUNTS}件です。不要なアカウントを削除してください。`);
-  }
 
   let persistedSession: AtpSessionData | null = null;
   const loginAgent = new AtpAgent({
@@ -443,18 +391,15 @@ export async function login(username: string, password: string): Promise<void> {
   const session = persistedSession ?? (result.data as AtpSessionData);
   const accountId = session.did ?? crypto.randomUUID();
   const handle = session.handle ?? username;
-  const nextAccount: StoredAccount = { id: accountId, handle, session };
-  const current = readAccounts().filter((item) => item.id !== accountId);
-  writeAccounts([...current, nextAccount]);
-  localStorage.setItem(ACTIVE_ACCOUNT_KEY, accountId);
+  const nextAccount: BlueskyStoredAccount = { id: accountId, handle, platform: "bluesky", session };
+  addAccount(nextAccount);
   setCurrentAccount(nextAccount);
 }
 
 export async function hasSession(): Promise<boolean> {
   if (!browser) return false;
-  migrateLegacySession();
 
-  const accounts = readAccounts();
+  const accounts = getStoredAccounts();
   if (!accounts.length) {
     setCurrentAccount(null);
     setMessage("アカウントを追加してはじめましょう。", "info");
@@ -471,21 +416,27 @@ export async function hasSession(): Promise<boolean> {
     return false;
   }
 
+  if (!isBlueskyAccount(active)) {
+    setCurrentAccount(active);
+    setActiveAccountId(active.id);
+    return true;
+  }
+
   try {
     await activeAgent.resumeSession(active.session);
     setCurrentAccount(active);
-    localStorage.setItem(ACTIVE_ACCOUNT_KEY, active.id);
+    setActiveAccountId(active.id);
     return true;
   } catch {
     removeStoredAccount(active.id);
-    const remain = readAccounts();
+    const remain = getStoredAccounts();
     if (!remain.length) {
       setCurrentAccount(null);
       setMessage("セッションが期限切れになりました。アプリパスワードで再ログインしてください。", "warning");
       goto("/login");
       return false;
     }
-    localStorage.setItem(ACTIVE_ACCOUNT_KEY, remain[0].id);
+    setActiveAccountId(remain[0].id);
     return hasSession();
   }
 }
@@ -501,7 +452,7 @@ export function logout(): void {
 export async function getProfile() {
   if (!browser) return null;
   try {
-    const actor = currentHandle || readAccounts()[0]?.handle;
+    const actor = currentHandle || readAccounts().filter(isBlueskyAccount)[0]?.handle;
     if (!actor) return null;
     const { data } = await activeAgent.getProfile({ actor });
     return data;
@@ -510,19 +461,34 @@ export async function getProfile() {
   }
 }
 
-export async function getProfileForAccount(accountId: string) {
+export async function getProfileForAccount(accountId: string): Promise<{ avatar?: string | null; displayName?: string; handle?: string } | null> {
   if (!browser) return null;
   const account = getAccountById(accountId);
   if (!account) return null;
 
-  try {
-    const { agent, resume } = createAgentForSession(account);
-    await resume();
-    const { data } = await agent.getProfile({ actor: account.handle });
-    return data;
-  } catch {
-    return null;
+  if (isBlueskyAccount(account)) {
+    try {
+      const { agent, resume } = createAgentForSession(account);
+      await resume();
+      const { data } = await agent.getProfile({ actor: account.handle });
+      return data;
+    } catch {
+      return null;
+    }
   }
+
+  if (isNostrAccount(account)) {
+    const { refreshNostrAccountHandle } = await import("./nostr");
+    const profile = await refreshNostrAccountHandle(accountId);
+    if (!profile) return null;
+    return {
+      avatar: profile.picture,
+      displayName: profile.displayName || profile.name || undefined,
+      handle: account.handle,
+    };
+  }
+
+  return null;
 }
 
 export async function getNotificationsForAccounts(
@@ -530,7 +496,7 @@ export async function getNotificationsForAccounts(
   cursorByAccount: TimelineCursorByAccount = {},
   limit = 25
 ): Promise<NotificationsPageResult> {
-  const allAccounts = readAccounts();
+  const allAccounts = readAccounts().filter(isBlueskyAccount);
   const targets =
     accountIds.length > 0
       ? allAccounts.filter((account) => accountIds.includes(account.id))
@@ -596,7 +562,7 @@ export async function getManagedPostsForAccounts(
   cursorByAccount: TimelineCursorByAccount = {},
   limit = 25
 ): Promise<ManagedPostsPageResult> {
-  const allAccounts = readAccounts();
+  const allAccounts = readAccounts().filter(isBlueskyAccount);
   const targets =
     accountIds.length > 0
       ? allAccounts.filter((account) => accountIds.includes(account.id))
@@ -660,19 +626,76 @@ export async function getManagedPostsForAccounts(
 
 export async function deleteManagedPost(accountId: string, postUri: string): Promise<void> {
   const account = getAccountById(accountId);
-  if (!account) throw new Error("Account not found");
+  if (!account || !isBlueskyAccount(account)) throw new Error("Account not found");
 
   const { agent, resume } = createAgentForSession(account);
   await resume();
   await agent.deletePost(postUri);
 }
 
+export async function postToBluesky(
+  account: BlueskyStoredAccount,
+  text: string,
+  imageFiles: PostImageInput[] = []
+): Promise<MultiPostResult> {
+  try {
+    const { agent, resume } = createAgentForSession(account);
+    await resume();
+
+    const rt = new RichText({ text });
+    await rt.detectFacets(agent);
+
+    const postPayload: Parameters<typeof agent.post>[0] = {
+      $type: "app.bsky.feed.post",
+      text: rt.text,
+      facets: rt.facets,
+    };
+    if (imageFiles.length > 0) {
+      const images = await Promise.all(
+        imageFiles.slice(0, 4).map(async ({ file, width, height, alt }) => {
+          if (file.size > BSKY_IMAGE_MAX_BYTES) {
+            throw new Error(
+              `Image too large after preprocessing: ${file.name} (${Math.round(file.size / 1024)}KB)`
+            );
+          }
+          const buffer = new Uint8Array(await file.arrayBuffer());
+          const uploaded = await agent.uploadBlob(buffer, {
+            encoding: file.type || "image/jpeg",
+          });
+          return {
+            alt: (alt ?? file.name) || "",
+            aspectRatio: { width, height },
+            image: uploaded.data.blob,
+          };
+        })
+      );
+      postPayload.embed = {
+        $type: "app.bsky.embed.images",
+        images,
+      };
+    }
+
+    await agent.post(postPayload);
+
+    return { accountId: account.id, handle: account.handle, platform: "bluesky", success: true };
+  } catch (error) {
+    return {
+      accountId: account.id,
+      handle: account.handle,
+      platform: "bluesky",
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
 export async function post(text: string, imageFiles: PostImageInput[] = []) {
   const activeId = getActiveAccountId();
   if (!activeId) throw new Error("No active account");
-  const results = await postToAccounts(text, [activeId], imageFiles);
-  const first = results[0];
-  if (!first?.success) throw new Error(first?.error ?? "Post failed");
+  const account = getAccountById(activeId);
+  if (!account || !isBlueskyAccount(account)) throw new Error("Active account is not a Bluesky account");
+  const result = await postToBluesky(account, text, imageFiles);
+  if (!result.success) throw new Error(result.error ?? "Post failed");
 }
 
 export async function extractHashtagsFromRichText(text: string): Promise<string[]> {
@@ -695,66 +718,12 @@ export async function extractHashtagsFromRichText(text: string): Promise<string[
   return [...tags];
 }
 
+/** @deprecated Use publishToAccounts from posting.ts instead */
 export async function postToAccounts(
   text: string,
   accountIds: string[],
   imageFiles: PostImageInput[] = []
 ): Promise<MultiPostResult[]> {
-  const allAccounts = readAccounts();
-  const targets = allAccounts.filter((account) => accountIds.includes(account.id));
-
-  const results = await Promise.all(
-    targets.map(async (account): Promise<MultiPostResult> => {
-      try {
-        const { agent, resume } = createAgentForSession(account);
-        await resume();
-
-        const rt = new RichText({ text });
-        await rt.detectFacets(agent);
-
-        const postPayload: Parameters<typeof agent.post>[0] = {
-          $type: "app.bsky.feed.post",
-          text: rt.text,
-          facets: rt.facets,
-        };
-        if (imageFiles.length > 0) {
-          const images = await Promise.all(
-            imageFiles.slice(0, 4).map(async ({ file, width, height, alt }) => {
-              if (file.size > BSKY_IMAGE_MAX_BYTES) {
-                throw new Error(
-                  `Image too large after preprocessing: ${file.name} (${Math.round(file.size / 1024)}KB)`
-                );
-              }
-              const buffer = new Uint8Array(await file.arrayBuffer());
-              const uploaded = await agent.uploadBlob(buffer, {
-                encoding: file.type || "image/jpeg",
-              });
-              return {
-                alt: (alt ?? file.name) || "",
-                aspectRatio: { width, height },
-                image: uploaded.data.blob,
-              };
-            })
-          );
-          postPayload.embed = {
-            $type: "app.bsky.embed.images",
-            images,
-          };
-        }
-
-        await agent.post(postPayload);
-
-        return { accountId: account.id, handle: account.handle, success: true };
-      } catch (error) {
-        return {
-          accountId: account.id,
-          handle: account.handle,
-          success: false,
-          error: error instanceof Error ? error.message : "Unknown error",
-        };
-      }
-    })
-  );
-
-  return results;
+  const { publishToAccounts } = await import("./posting");
+  return publishToAccounts(text, accountIds, imageFiles);
 }

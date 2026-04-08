@@ -5,14 +5,13 @@
   import { v4 as uuidv4 } from "uuid";
   import { preprocessImage } from "../lib/script/image";
   import {
-    extractHashtagsFromRichText,
     getStoredAccounts,
     hasSession,
-    postToAccounts,
     type MultiPostResult,
     type PostImageInput,
     type StoredAccount,
   } from "../lib/script/bsky";
+  import { publishToAccounts, extractHashtags } from "../lib/script/posting";
   import { isLoading, urlQuery, setMessage } from "../stores/MassDriver";
   import Icon from "../components/Icon.svelte";
   import AccountFilterBar from "../components/AccountFilterBar.svelte";
@@ -187,8 +186,8 @@
     isSubmitting = true;
     $isLoading = true;
     try {
-      const hashtags = await extractHashtagsFromRichText(postText);
-      const results = await postToAccounts(
+      const hashtags = extractHashtags(postText);
+      const results = await publishToAccounts(
         postText,
         selectedAccountIds,
         attachments.flatMap((item): PostImageInput[] =>

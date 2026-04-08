@@ -19,8 +19,12 @@
     accounts = getStoredAccounts();
     const entries = await Promise.all(
       accounts.map(async (account) => {
-        const profile = await getProfileForAccount(account.id);
-        return [account.id, profile?.avatar ?? null] as const;
+        try {
+          const profile = await getProfileForAccount(account.id);
+          return [account.id, profile?.avatar ?? null] as const;
+        } catch {
+          return [account.id, null] as const;
+        }
       }),
     );
     accountAvatars = Object.fromEntries(entries);
@@ -66,8 +70,8 @@
             class="sidebar-avatar-img"
           />
         {:else}
-          <div class="sidebar-avatar-fallback">
-            {account.handle.slice(0, 1).toUpperCase()}
+          <div class="sidebar-avatar-fallback" class:nostr-fb={account.platform === "nostr"}>
+            {account.platform === "nostr" ? "N" : account.handle.slice(0, 1).toUpperCase()}
           </div>
         {/if}
         <span>@{account.handle}</span>
@@ -198,6 +202,12 @@
     font-weight: 700;
     color: var(--muted);
     flex-shrink: 0;
+  }
+
+  .nostr-fb {
+    border-color: rgba(139, 92, 246, 0.4);
+    background: rgba(139, 92, 246, 0.12);
+    color: rgba(139, 92, 246, 0.9);
   }
 
   .sidebar-account-add {

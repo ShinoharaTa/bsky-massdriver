@@ -45,10 +45,12 @@
   "dependencies": {
     "@atproto/api": "^0.19.3",
     "@types/uuid": "^10.0.0",
+    "nostr-tools": "^2.23.3",
     "uuid": "^11.0.0"
   },
   "overrides": {
     "cookie": "^1.1.1",
+    "flatted": "^3.4.2",
     "serialize-javascript": "^7.0.4"
   }
 }

@@ -9,6 +9,8 @@
     removeStoredAccount,
     type StoredAccount,
   } from "../../lib/script/bsky";
+  import { addAccount, type NostrStoredAccount } from "../../lib/script/accounts";
+  import { deriveNostrKeys } from "../../lib/script/nostr";
   import { isLoading } from "../../stores/MassDriver";
 
   let username = "";
@@ -17,6 +19,12 @@
   let accounts: StoredAccount[] = [];
   let accountAvatars: Record<string, string | null> = {};
 
+  let nostrNsec = "";
+  let nostrError = "";
+
+  type LoginMode = "bluesky" | "nostr";
+  let loginMode: LoginMode = "bluesky";
+
   onMount(async () => {
     await loadAccounts();
   });
@@ -24,10 +32,12 @@
   async function loadAccounts() {
     accounts = getStoredAccounts();
     const entries = await Promise.all(
-      accounts.map(async (account) => {
-        const profile = await getProfileForAccount(account.id);
-        return [account.id, profile?.avatar ?? null] as const;
-      })
+      accounts
+        .filter((a) => a.platform === "bluesky")
+        .map(async (account) => {
+          const profile = await getProfileForAccount(account.id);
+          return [account.id, profile?.avatar ?? null] as const;
+        })
     );
     accountAvatars = Object.fromEntries(entries);
   }
@@ -45,9 +55,39 @@
     }
   }
 
+  function handleNostrLogin() {
+    try {
+      nostrError = "";
+      if (!nostrNsec.trim()) {
+        nostrError = "nsec を入力してください。";
+        return;
+      }
+
+      const { pubkey, npub } = deriveNostrKeys(nostrNsec.trim());
+      const handle = `${npub.slice(0, 10)}...${npub.slice(-6)}`;
+
+      const newAccount: NostrStoredAccount = {
+        id: pubkey,
+        handle,
+        platform: "nostr",
+        nsec: nostrNsec.trim(),
+        pubkey,
+      };
+
+      addAccount(newAccount);
+      goto("/");
+    } catch (error: any) {
+      nostrError = String(error);
+    }
+  }
+
   async function deleteAccount(accountId: string) {
     removeStoredAccount(accountId);
     await loadAccounts();
+  }
+
+  function platformLabel(account: StoredAccount): string {
+    return account.platform === "nostr" ? "Nostr" : "Bluesky";
   }
 </script>
 
@@ -57,7 +97,7 @@
     <h1>Mass Driver</h1>
   </div>
   <p class="tagline">
-    Bluesky に、もっとスムーズに投稿する。<br />
+    Bluesky / Nostr にマルチポスト。<br />
     投稿専用のクイックポストツール。
   </p>
 
@@ -67,15 +107,18 @@
       {#each accounts as account (account.id)}
         <div class="saved-item">
           <a href="/" class="saved-meta">
-            <div class="saved-avatar">
-              {#if accountAvatars[account.id]}
+            <div class="saved-avatar" class:nostr-avatar={account.platform === "nostr"}>
+              {#if account.platform === "bluesky" && accountAvatars[account.id]}
                 <img src={accountAvatars[account.id] ?? ""} alt={account.handle} class="saved-avatar-image" />
               {:else}
-                <span>{account.handle.slice(0, 1).toUpperCase()}</span>
+                <span>{account.platform === "nostr" ? "N" : account.handle.slice(0, 1).toUpperCase()}</span>
               {/if}
             </div>
             <div class="saved-copy">
-              <div class="saved-handle">@{account.handle}</div>
+              <div class="saved-handle">
+                <span class="platform-tag" class:nostr={account.platform === "nostr"}>{platformLabel(account)}</span>
+                @{account.handle}
+              </div>
               <div class="saved-status">ログイン済み</div>
             </div>
           </a>
@@ -92,45 +135,80 @@
 
   <section class="card login-card">
     <div class="login-card-title">アカウント追加</div>
-    <form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
-      <div class="form-group">
-        <label for="handle">ハンドル</label>
-        <input
-          class="form-input"
-          id="handle"
-          type="text"
-          bind:value={username}
-          placeholder="you.bsky.social"
-          required
-        />
-      </div>
-      <div class="form-group">
-        <label for="password">アプリパスワード</label>
-        <input
-          class="form-input"
-          id="password"
-          type="password"
-          bind:value={password}
-          placeholder="xxxx-xxxx-xxxx-xxxx"
-          required
-        />
-        <p class="form-hint">
-          通常のパスワードではありません。
-          <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noreferrer">Bluesky の設定画面</a>
-          で発行してください。
-        </p>
-      </div>
-      {#if errorMessage}
-        <p class="error-msg">{errorMessage}</p>
-      {/if}
-      <div class="login-actions">
-        <div class="login-links">
-          <a href="https://bsky.app" target="_blank" rel="noreferrer">アカウント作成</a>
-          <a href="/information">使い方</a>
+
+    <div class="mode-tabs">
+      <button class="mode-tab" class:active={loginMode === "bluesky"} onclick={() => loginMode = "bluesky"}>Bluesky</button>
+      <button class="mode-tab" class:active={loginMode === "nostr"} onclick={() => loginMode = "nostr"}>Nostr</button>
+    </div>
+
+    {#if loginMode === "bluesky"}
+      <form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+        <div class="form-group">
+          <label for="handle">ハンドル</label>
+          <input
+            class="form-input"
+            id="handle"
+            type="text"
+            bind:value={username}
+            placeholder="you.bsky.social"
+            required
+          />
         </div>
-        <button type="submit" class="btn btn-primary">ログイン</button>
-      </div>
-    </form>
+        <div class="form-group">
+          <label for="password">アプリパスワード</label>
+          <input
+            class="form-input"
+            id="password"
+            type="password"
+            bind:value={password}
+            placeholder="xxxx-xxxx-xxxx-xxxx"
+            required
+          />
+          <p class="form-hint">
+            通常のパスワードではありません。
+            <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noreferrer">Bluesky の設定画面</a>
+            で発行してください。
+          </p>
+        </div>
+        {#if errorMessage}
+          <p class="error-msg">{errorMessage}</p>
+        {/if}
+        <div class="login-actions">
+          <div class="login-links">
+            <a href="https://bsky.app" target="_blank" rel="noreferrer">アカウント作成</a>
+            <a href="/information">使い方</a>
+          </div>
+          <button type="submit" class="btn btn-primary">ログイン</button>
+        </div>
+      </form>
+    {:else}
+      <form onsubmit={(e) => { e.preventDefault(); handleNostrLogin(); }}>
+        <div class="form-group">
+          <label for="nsec">秘密鍵（nsec）</label>
+          <input
+            class="form-input"
+            id="nsec"
+            type="password"
+            bind:value={nostrNsec}
+            placeholder="nsec1..."
+            required
+          />
+          <p class="form-hint">
+            Nostrクライアントの設定画面でnsecを確認してください。<br />
+            鍵はブラウザ内にのみ保存されます。リレーや画像サーバーはアカウント設定から変更できます。
+          </p>
+        </div>
+        {#if nostrError}
+          <p class="error-msg">{nostrError}</p>
+        {/if}
+        <div class="login-actions">
+          <div class="login-links">
+            <a href="/information">使い方</a>
+          </div>
+          <button type="submit" class="btn btn-primary">追加</button>
+        </div>
+      </form>
+    {/if}
   </section>
 </div>
 
@@ -168,6 +246,38 @@
     letter-spacing: 0.5px;
     margin-bottom: 4px;
   }
+
+  .mode-tabs {
+    display: flex;
+    gap: 0;
+    margin: 8px 0 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .mode-tab {
+    flex: 1;
+    padding: 7px 12px;
+    font-size: var(--font-sm);
+    font-weight: 600;
+    font-family: inherit;
+    border: none;
+    background: var(--panel-soft);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mode-tab:not(:last-child) {
+    border-right: 1px solid var(--border);
+  }
+  .mode-tab.active {
+    background: var(--panel);
+    color: var(--text);
+  }
+  .mode-tab:hover:not(.active) {
+    background: var(--panel);
+  }
+
   .saved-accounts {
     margin-top: 18px;
   }
@@ -208,6 +318,10 @@
     word-break: break-all;
     font-weight: 600;
     transition: color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
   }
   .saved-avatar {
     width: 32px;
@@ -223,6 +337,11 @@
     font-weight: 700;
     overflow: hidden;
     flex-shrink: 0;
+  }
+  .nostr-avatar {
+    border-color: rgba(139, 92, 246, 0.4);
+    background: rgba(139, 92, 246, 0.12);
+    color: rgba(139, 92, 246, 0.9);
   }
   .saved-avatar-image {
     width: 100%;
@@ -241,6 +360,24 @@
     gap: 6px;
     flex-shrink: 0;
   }
+
+  .platform-tag {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(56, 189, 248, 0.15);
+    color: rgba(56, 189, 248, 0.9);
+    line-height: 1.3;
+    flex-shrink: 0;
+  }
+  .platform-tag.nostr {
+    background: rgba(139, 92, 246, 0.15);
+    color: rgba(139, 92, 246, 0.9);
+  }
+
   :global(.btn-block) {
     display: block;
     width: 100%;

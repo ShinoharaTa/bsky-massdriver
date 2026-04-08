@@ -24,7 +24,10 @@
   <div class="result-list">
     {#each results as result (result.accountId)}
       <div class="result-row">
-        <span class="result-handle">@{result.handle}</span>
+        <span class="result-handle">
+          <span class="result-platform" class:nostr={result.platform === "nostr"}>{result.platform === "nostr" ? "Nostr" : "Bsky"}</span>
+          @{result.handle}
+        </span>
         {#if result.success}
           <span class="result-tag ok">
             <Icon name="check" size={12} /> 成功
@@ -82,6 +85,28 @@
     color: var(--text);
     word-break: break-all;
     min-width: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .result-platform {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(56, 189, 248, 0.15);
+    color: rgba(56, 189, 248, 0.9);
+    line-height: 1.3;
+    flex-shrink: 0;
+  }
+
+  .result-platform.nostr {
+    background: rgba(139, 92, 246, 0.15);
+    color: rgba(139, 92, 246, 0.9);
   }
 
   .result-tag {
