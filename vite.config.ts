@@ -12,6 +12,9 @@ export default defineConfig({
       pwaAssets: {
         config: true,
       },
+      workbox: {
+        mode: "development",
+      },
       manifest: {
         id: "/",
         short_name: "Mass Driver",
