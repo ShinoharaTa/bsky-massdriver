@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      # 通常のバージョン更新は月次で1本のPRにまとめる
+      npm-dependencies:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      # 脆弱性対応のPRもまとめて出す
+      npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
