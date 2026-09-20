@@ -6,13 +6,21 @@ updates:
       interval: "monthly"
     groups:
       # 通常のバージョン更新は月次で1本のPRにまとめる
+      # major は個別 PR にして単独で判断する（#16 で TS7 が紛れ込んだ対策）
       npm-dependencies:
         applies-to: version-updates
         patterns:
           - "*"
+        update-types:
+          - "minor"
+          - "patch"
       # 脆弱性対応のPRもまとめて出す
       npm-security:
         applies-to: security-updates
         patterns:
           - "*"
     open-pull-requests-limit: 5
+    ignore:
+      # TypeScript 7 (tsgo) は svelte-check / typescript-eslint が未対応。対応後に外す
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
