@@ -24,6 +24,7 @@
   let templateMessages: { key: string; text: string }[] = [];
 
   let imageInput: HTMLInputElement | null = null;
+  let cameraInput: HTMLInputElement | null = null;
   let textareaElement: HTMLTextAreaElement | null = null;
   type AttachmentStatus = "processing" | "ready" | "error";
   type AttachmentItem = {
@@ -282,6 +283,14 @@
     imageInput?.click();
   }
 
+  function openCamera() {
+    if (hasProcessingAttachments) {
+      setMessage($t("compose.waitImageProcessing"), "warning");
+      return;
+    }
+    cameraInput?.click();
+  }
+
   async function onSelectImages(event: Event) {
     const target = event.target as HTMLInputElement;
     const files = Array.from(target.files ?? []);
@@ -471,6 +480,14 @@
       class="hidden-image-input"
       onchange={onSelectImages}
     />
+    <input
+      bind:this={cameraInput}
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      capture="environment"
+      class="hidden-image-input"
+      onchange={onSelectImages}
+    />
     <textarea
       bind:this={textareaElement}
       bind:value={text}
@@ -548,7 +565,8 @@
         </div>
       </div>
       <div class="primary-actions">
-        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-icon-only" aria-label={$t("compose.attachImage")}><Icon name="image" size={16} /></button>
+        <button onclick={openCamera} class="btn btn-outline btn-sm btn-icon-only" disabled={attachments.length >= 4} aria-label={$t("compose.takePhoto")}><Icon name="camera" size={16} /></button>
+        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-icon-only" disabled={attachments.length >= 4} aria-label={$t("compose.attachImage")}><Icon name="image" size={16} /></button>
         <button onclick={submitForm} class="btn btn-primary" disabled={isSubmitting}>
           {isSubmitting ? $t("compose.sending") : "Lift Off!"}
         </button>
