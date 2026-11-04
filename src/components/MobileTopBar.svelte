@@ -1,6 +1,7 @@
 <script lang="ts">
   import { afterNavigate } from "$app/navigation";
   import { getProfileForAccount, getStoredAccounts, type StoredAccount } from "../lib/script/bsky";
+  import { t } from "../lib/i18n";
 
   let accounts: StoredAccount[] = $state([]);
   let accountAvatars: Record<string, string | null> = $state({});
@@ -30,7 +31,7 @@
     <img src="/massdriver-icon.svg" width="20" height="20" alt="Mass Driver" />
     <h1>Mass Driver</h1>
   </div>
-  <a href="/account" class="avatar-group" aria-label="アカウント設定">
+  <a href="/account" class="avatar-group" aria-label={$t("nav.accountSettings")}>
     {#each accounts as account (account.id)}
       {#if accountAvatars[account.id]}
         <img

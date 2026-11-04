@@ -12,6 +12,7 @@
   import { addAccount, type NostrStoredAccount } from "../../lib/script/accounts";
   import { deriveNostrKeys } from "../../lib/script/nostr";
   import { isLoading } from "../../stores/MassDriver";
+  import { t } from "../../lib/i18n";
 
   let username = "";
   let password = "";
@@ -59,7 +60,7 @@
     try {
       nostrError = "";
       if (!nostrNsec.trim()) {
-        nostrError = "nsec を入力してください。";
+        nostrError = $t("common.nsecRequired");
         return;
       }
 
@@ -97,13 +98,13 @@
     <h1>Mass Driver</h1>
   </div>
   <p class="tagline">
-    Bluesky / Nostr にマルチポスト。<br />
-    投稿専用のクイックポストツール。
+    {$t("login.taglineLine1")}<br />
+    {$t("login.taglineLine2")}
   </p>
 
   {#if accounts.length > 0}
     <section class="card saved-accounts">
-      <div class="saved-title">保存済みアカウント</div>
+      <div class="saved-title">{$t("login.savedAccounts")}</div>
       {#each accounts as account (account.id)}
         <div class="saved-item">
           <a href="/" class="saved-meta">
@@ -119,22 +120,22 @@
                 <span class="platform-tag" class:nostr={account.platform === "nostr"}>{platformLabel(account)}</span>
                 @{account.handle}
               </div>
-              <div class="saved-status">ログイン済み</div>
+              <div class="saved-status">{$t("login.loggedIn")}</div>
             </div>
           </a>
           <div class="saved-actions">
-            <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteAccount(account.id)} aria-label="削除">
+            <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteAccount(account.id)} aria-label={$t("common.delete")}>
               <Icon name="trash" size={14} />
             </button>
           </div>
         </div>
       {/each}
-      <a href="/" class="btn btn-primary btn-block">投稿画面へ</a>
+      <a href="/" class="btn btn-primary btn-block">{$t("common.goToCompose")}</a>
     </section>
   {/if}
 
   <section class="card login-card">
-    <div class="login-card-title">アカウント追加</div>
+    <div class="login-card-title">{$t("common.addAccount")}</div>
 
     <div class="mode-tabs">
       <button class="mode-tab" class:active={loginMode === "bluesky"} onclick={() => loginMode = "bluesky"}>Bluesky</button>
@@ -144,7 +145,7 @@
     {#if loginMode === "bluesky"}
       <form onsubmit={(e) => { e.preventDefault(); handleLogin(); }}>
         <div class="form-group">
-          <label for="handle">ハンドル</label>
+          <label for="handle">{$t("login.handle")}</label>
           <input
             class="form-input"
             id="handle"
@@ -155,7 +156,7 @@
           />
         </div>
         <div class="form-group">
-          <label for="password">アプリパスワード</label>
+          <label for="password">{$t("common.appPassword")}</label>
           <input
             class="form-input"
             id="password"
@@ -165,9 +166,8 @@
             required
           />
           <p class="form-hint">
-            通常のパスワードではありません。
-            <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noreferrer">Bluesky の設定画面</a>
-            で発行してください。
+            {$t("login.appPasswordHintBefore")}
+            <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noreferrer">{$t("login.appPasswordHintLink")}</a>{$t("login.appPasswordHintAfter")}
           </p>
         </div>
         {#if errorMessage}
@@ -175,16 +175,16 @@
         {/if}
         <div class="login-actions">
           <div class="login-links">
-            <a href="https://bsky.app" target="_blank" rel="noreferrer">アカウント作成</a>
-            <a href="/information">使い方</a>
+            <a href="https://bsky.app" target="_blank" rel="noreferrer">{$t("login.createAccount")}</a>
+            <a href="/information">{$t("common.howToUse")}</a>
           </div>
-          <button type="submit" class="btn btn-primary">ログイン</button>
+          <button type="submit" class="btn btn-primary">{$t("common.login")}</button>
         </div>
       </form>
     {:else}
       <form onsubmit={(e) => { e.preventDefault(); handleNostrLogin(); }}>
         <div class="form-group">
-          <label for="nsec">秘密鍵（nsec）</label>
+          <label for="nsec">{$t("common.nsecLabel")}</label>
           <input
             class="form-input"
             id="nsec"
@@ -194,8 +194,8 @@
             required
           />
           <p class="form-hint">
-            Nostrクライアントの設定画面でnsecを確認してください。<br />
-            鍵はブラウザ内にのみ保存されます。リレーや画像サーバーはアカウント設定から変更できます。
+            {$t("login.nsecHintLine1")}<br />
+            {$t("login.nsecHintLine2")}
           </p>
         </div>
         {#if nostrError}
@@ -203,9 +203,9 @@
         {/if}
         <div class="login-actions">
           <div class="login-links">
-            <a href="/information">使い方</a>
+            <a href="/information">{$t("common.howToUse")}</a>
           </div>
-          <button type="submit" class="btn btn-primary">追加</button>
+          <button type="submit" class="btn btn-primary">{$t("common.add")}</button>
         </div>
       </form>
     {/if}

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
   import { message, messageType } from '../stores/MassDriver';
+  import { t } from '../lib/i18n';
   let show = false;
   let currentType = "info";
   let timeoutId: number;
@@ -40,7 +41,7 @@
     role="status"
   >
     <p>{$message}</p>
-    <button class="toast-dismiss" onclick={dismiss} aria-label="閉じる">×</button>
+    <button class="toast-dismiss" onclick={dismiss} aria-label={$t("common.close")}>×</button>
   </div>
 {/if}
 

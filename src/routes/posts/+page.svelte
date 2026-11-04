@@ -14,6 +14,7 @@
     type TimelineCursorByAccount,
   } from "../../lib/script/bsky";
   import { isLoading, setMessage } from "../../stores/MassDriver";
+  import { t } from "../../lib/i18n";
 
   let isLoaded = false;
   let isLoadingMore = false;
@@ -79,16 +80,16 @@
   }
 
   async function handleDelete(item: ManagedPost) {
-    const ok = window.confirm("この投稿を削除しますか？");
+    const ok = window.confirm($t("posts.confirmDelete"));
     if (!ok) return;
 
     deletingPostIds = [...deletingPostIds, item.id];
     try {
       await deleteManagedPost(item.accountId, item.uri);
       posts = posts.filter((post) => post.id !== item.id);
-      setMessage("投稿を削除しました。", "success");
+      setMessage($t("posts.deleted"), "success");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "削除に失敗しました。", "error");
+      setMessage(error instanceof Error ? error.message : $t("posts.deleteFailed"), "error");
     } finally {
       deletingPostIds = deletingPostIds.filter((id) => id !== item.id);
     }
@@ -110,19 +111,19 @@
 
 {#if isLoaded}
   <section class="page-intro">
-    <h2>投稿管理</h2>
+    <h2>{$t("nav.postsManage")}</h2>
   </section>
 
   <AccountFilterBar
     {accounts}
     {selectedAccountIds}
     toggleAccount={toggleAccount}
-    label="表示アカウント"
+    label={$t("posts.accountLabel")}
   />
 
   {#if errors.length > 0}
     <section class="card error-panel">
-      <div class="section-title"><span>取得エラー</span></div>
+      <div class="section-title"><span>{$t("common.fetchError")}</span></div>
       {#each errors as error (`${error.accountId}:${error.error}`)}
         <p>@{error.handle}: {error.error}</p>
       {/each}
@@ -137,15 +138,15 @@
     </section>
   {:else}
     <section class="card empty-state">
-      <h3>表示できる投稿がありません</h3>
-      <p>対象アカウントを切り替えるか、Bluesky 側で投稿を作成したあとに再度確認してください。</p>
+      <h3>{$t("posts.emptyTitle")}</h3>
+      <p>{$t("posts.emptyBody")}</p>
     </section>
   {/if}
 
   {#if hasMore}
     <div class="load-more">
       <button class="btn btn-outline" onclick={loadMore} disabled={isLoadingMore}>
-        {isLoadingMore ? "読み込み中..." : "もっと見る"} <Icon name="chevron-down" size={16} />
+        {isLoadingMore ? $t("common.loading") : $t("common.loadMore")} <Icon name="chevron-down" size={16} />
       </button>
     </div>
   {/if}

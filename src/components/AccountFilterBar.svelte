@@ -1,12 +1,13 @@
 <script lang="ts">
   import type { StoredAccount } from "../lib/script/bsky";
   import Icon from "./Icon.svelte";
+  import { t } from "../lib/i18n";
 
   let {
     accounts,
     selectedAccountIds,
     toggleAccount,
-    label = "アカウント",
+    label,
   }: {
     accounts: StoredAccount[];
     selectedAccountIds: string[];
@@ -20,7 +21,7 @@
 </script>
 
 <div class="section-title">
-  <span>{label}</span>
+  <span>{label ?? $t("accountFilter.label")}</span>
   <span class="badge">{selectedAccountIds.length}/{accounts.length}</span>
 </div>
 

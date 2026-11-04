@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { AccountNotification } from "../lib/script/bsky";
   import Icon from "./Icon.svelte";
+  import { dateLocale, locale, t, type MessageKey } from "../lib/i18n";
 
   let { item }: { item: AccountNotification } = $props();
 
@@ -14,23 +15,31 @@
     unknown: "bell",
   };
 
-  const actionMap: Record<AccountNotification["reason"], string> = {
-    reply: "がリプライ",
-    mention: "がメンション",
-    repost: "がリポスト",
-    like: "がリアクション",
-    quote: "が引用",
-    follow: "がフォロー",
-    unknown: "",
+  const actionKeyMap: Record<AccountNotification["reason"], MessageKey> = {
+    reply: "notification.action.reply",
+    mention: "notification.action.mention",
+    repost: "notification.action.repost",
+    like: "notification.action.like",
+    quote: "notification.action.quote",
+    follow: "notification.action.follow",
+    unknown: "notification.action.unknown",
   };
 
-  function formatDate(value: string) {
-    return new Intl.DateTimeFormat("ja-JP", {
+  // Word order differs by language, so render the name element at the {name} position
+  const actionParts = $derived($t(actionKeyMap[item.reason]).split("{name}"));
+
+  // Rebuilt when $locale changes
+  const dateFormatter = $derived(
+    new Intl.DateTimeFormat(dateLocale($locale), {
       month: "numeric",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(new Date(value));
+    })
+  );
+
+  function formatDate(value: string) {
+    return dateFormatter.format(new Date(value));
   }
 
   function shouldShowSubjectPreview(item: AccountNotification) {
@@ -50,8 +59,7 @@
         <div class="notif-avatar-fallback">{(item.authorHandle || "?").slice(0, 1).toUpperCase()}</div>
       {/if}
       <span>
-        <span class="notif-actor-name">{item.authorDisplayName || item.authorHandle || "Unknown"}</span>
-        <span class="notif-action">さん{actionMap[item.reason]}</span>
+        {#if actionParts[0]}<span class="notif-action">{actionParts[0]}</span>{/if}<span class="notif-actor-name">{item.authorDisplayName || item.authorHandle || "Unknown"}</span>{#if actionParts[1]}<span class="notif-action">{actionParts[1]}</span>{/if}
       </span>
       <span class="notif-meta">@{item.accountHandle} · {formatDate(item.indexedAt)}</span>
     </div>
@@ -60,7 +68,7 @@
     {/if}
     {#if shouldShowSubjectPreview(item)}
       <div class="notif-subject">
-        <div class="notif-subject-label">元の投稿</div>
+        <div class="notif-subject-label">{$t("notification.originalPost")}</div>
         <div class="notif-preview">{item.subjectText}</div>
       </div>
     {:else if !item.previewText && item.subjectText}

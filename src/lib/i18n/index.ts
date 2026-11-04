@@ -12,7 +12,7 @@ const messages: Record<Locale, Record<MessageKey, string>> = { ja, en };
 
 export const locales: readonly Locale[] = ["ja", "en"];
 
-// 切替 UI 用。表示中の言語に関係なく、各言語を自言語の名前で出す
+// For the switcher UI: each locale is shown by its own name, regardless of the current locale
 export const localeNames: Record<Locale, string> = {
   ja: ja["locale.name"],
   en: en["locale.name"],
@@ -22,14 +22,14 @@ function isLocale(value: unknown): value is Locale {
   return value === "ja" || value === "en";
 }
 
-// 判定順: localStorage["locale"] → navigator.language（ja* なら ja、それ以外は en）。SSR / prerender 時は ja
+// Order: localStorage["locale"] -> navigator.language (ja* -> ja, otherwise en). "ja" during SSR / prerender
 export function detectLocale(): Locale {
   if (typeof window === "undefined") return "ja";
   try {
     const saved = window.localStorage?.getItem(LOCALE_STORAGE_KEY);
     if (isLocale(saved)) return saved;
   } catch {
-    // localStorage が使えない環境では navigator にフォールバック
+    // Fall back to navigator when localStorage is unavailable
   }
   const language = window.navigator?.language ?? "";
   return language.toLowerCase().startsWith("ja") ? "ja" : "en";
@@ -48,7 +48,7 @@ export function setLocale(value: Locale) {
   try {
     localStorage.setItem(LOCALE_STORAGE_KEY, value);
   } catch {
-    // 保存できなくても表示の切替は行う
+    // Still switch the display even if saving fails
   }
   document.documentElement.lang = value;
 }
@@ -67,12 +67,12 @@ export const t = derived(
   ($l) => (key: MessageKey, params?: MessageParams) => format($l, key, params)
 );
 
-// store 外（lib/script/*.ts など）から呼ぶ同期版
+// Synchronous version for use outside components (e.g. lib/script/*.ts)
 export function translate(key: MessageKey, params?: MessageParams): string {
   return format(get(locale), key, params);
 }
 
-// Intl.DateTimeFormat 用。引数を省略すると現在の locale を使う
+// For Intl.DateTimeFormat. Uses the current locale when omitted
 export function dateLocale(l: Locale = get(locale)): string {
   return l === "ja" ? "ja-JP" : "en-US";
 }

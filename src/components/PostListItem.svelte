@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ManagedPost } from "../lib/script/bsky";
   import Icon from "./Icon.svelte";
+  import { dateLocale, locale, t } from "../lib/i18n";
 
   let {
     item,
@@ -14,13 +15,18 @@
 
   let lightboxImage: string | null = $state(null);
 
-  function formatDate(value: string) {
-    return new Intl.DateTimeFormat("ja-JP", {
+  // Rebuilt when $locale changes
+  const dateFormatter = $derived(
+    new Intl.DateTimeFormat(dateLocale($locale), {
       month: "numeric",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(new Date(value));
+    })
+  );
+
+  function formatDate(value: string) {
+    return dateFormatter.format(new Date(value));
   }
 
   function openLightbox(url: string) {
@@ -38,7 +44,7 @@
       <span class="post-account">@{item.accountHandle}</span>
       <time class="post-time" datetime={item.indexedAt}>{formatDate(item.indexedAt)}</time>
       {#if item.replyParentUri}
-        <span class="reply-badge">返信</span>
+        <span class="reply-badge">{$t("postItem.reply")}</span>
       {/if}
     </div>
 
@@ -46,29 +52,29 @@
       class="btn btn-ghost btn-sm btn-icon-only"
       disabled={isDeleting}
       onclick={() => onDelete(item)}
-      aria-label="投稿を削除"
+      aria-label={$t("postItem.delete")}
     >
       {#if isDeleting}
-        削除中...
+        {$t("postItem.deleting")}
       {:else}
         <Icon name="trash" size={16} />
       {/if}
     </button>
   </div>
 
-  <p class="post-text">{item.text || "本文なし"}</p>
+  <p class="post-text">{item.text || $t("postItem.noText")}</p>
 
   {#if item.images && item.images.length > 0}
     <div class="post-images">
       {#each item.images as img (img.fullsize)}
-        <button class="post-image-btn" aria-label="画像を拡大" onclick={() => openLightbox(img.fullsize)}>
+        <button class="post-image-btn" aria-label={$t("postItem.zoomImage")} onclick={() => openLightbox(img.fullsize)}>
           <img src={img.thumb} alt={img.alt} loading="lazy" />
         </button>
       {/each}
     </div>
   {:else if item.hasMedia}
     <div class="post-media-fallback">
-      <span class="reply-badge">メディアあり</span>
+      <span class="reply-badge">{$t("postItem.hasMedia")}</span>
     </div>
   {/if}
 
@@ -83,10 +89,10 @@
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="lightbox" onclick={closeLightbox}>
-    <button class="lightbox-close" onclick={closeLightbox} aria-label="閉じる"><Icon name="x" size={24} /></button>
+    <button class="lightbox-close" onclick={closeLightbox} aria-label={$t("common.close")}><Icon name="x" size={24} /></button>
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-    <img src={lightboxImage} alt="拡大画像" onclick={(e) => e.stopPropagation()} />
+    <img src={lightboxImage} alt={$t("postItem.zoomedImage")} onclick={(e) => e.stopPropagation()} />
   </div>
 {/if}
 
