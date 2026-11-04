@@ -5,6 +5,13 @@
   import { v4 as uuidv4 } from "uuid";
   import { preprocessImage } from "../lib/script/image";
   import {
+    clearPendingShare,
+    composeShareText,
+    loadPendingShare,
+    savePendingShare,
+    type PendingShare,
+  } from "../lib/share/pendingShare";
+  import {
     getStoredAccounts,
     hasSession,
     type MultiPostResult,
@@ -82,24 +89,6 @@
     localStorage.setItem("selectedAccounts", JSON.stringify(selectedAccountIds));
   }
 
-  function composeShareText(title: string, sharedText: string, sharedUrl: string): string {
-    const parts: string[] = [];
-
-    if (title) parts.push(title);
-
-    if (sharedText) {
-      const alreadyHasTitle = title && sharedText.startsWith(title);
-      if (!alreadyHasTitle) parts.push(sharedText);
-    }
-
-    if (sharedUrl) {
-      const alreadyInText = sharedText.includes(sharedUrl);
-      if (!alreadyInText) parts.push(sharedUrl);
-    }
-
-    return parts.join("\n").trim();
-  }
-
   function extractShareContent(url: URL): string {
     const title = url.searchParams.get("title") ?? "";
     const sharedText = url.searchParams.get("text") ?? "";
@@ -125,30 +114,37 @@
     loadHashtagHistory();
 
     const shareContent = extractShareContent(page.url);
+    const isSharedRedirect = page.url.searchParams.has("shared");
 
-    if (shareContent) {
-      sessionStorage.setItem("pendingShareText", shareContent);
+    let pendingShare: PendingShare | null = null;
+    try {
+      pendingShare = await loadPendingShare();
+      if (shareContent) {
+        pendingShare = { text: shareContent, files: pendingShare?.files ?? [] };
+        await savePendingShare(pendingShare);
+      }
+    } catch (err) {
+      console.error(err);
+      if (shareContent) pendingShare = { text: shareContent, files: [] };
     }
 
-    const pendingShare = sessionStorage.getItem("pendingShareText");
-
-    if (pendingShare) {
-      text = pendingShare;
-      $urlQuery = pendingShare;
+    if (pendingShare?.text) {
+      text = pendingShare.text;
+      $urlQuery = pendingShare.text;
     }
 
     const login = await hasSession();
     if (!login) return;
 
     if (pendingShare) {
-      sessionStorage.removeItem("pendingShareText");
+      clearPendingShare().catch((err) => console.error(err));
     }
 
     if ($urlQuery !== "") {
       text = $urlQuery;
       $urlQuery = "";
     }
-    if (shareContent) goto("/", { replaceState: true });
+    if (shareContent || isSharedRedirect) goto("/", { replaceState: true });
 
     if (!text) {
       const draft = localStorage.getItem(DRAFT_KEY);
@@ -157,6 +153,8 @@
 
     loadAccounts();
     isLoaded = true;
+
+    if (pendingShare?.files.length) void addFiles(pendingShare.files);
   });
 
   function trimPostContent(postContent: string): string {
@@ -287,6 +285,13 @@
     const files = Array.from(target.files ?? []);
     if (!files.length) return;
 
+    target.value = "";
+    await addFiles(files);
+  }
+
+  async function addFiles(files: File[]) {
+    if (!files.length) return;
+
     const incoming = files.slice(0, Math.max(0, 4 - attachments.length));
     if (incoming.length < files.length) {
       setMessage($t("compose.imageLimit"), "warning");
@@ -308,7 +313,6 @@
     }));
 
     attachments = [...attachments, ...placeholders];
-    target.value = "";
 
     await Promise.all(
       placeholders.map(async (placeholder) => {

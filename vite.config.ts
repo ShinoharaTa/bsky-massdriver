@@ -8,12 +8,12 @@ export default defineConfig({
     tailwindcss(),
     sveltekit(),
     SvelteKitPWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
       registerType: "autoUpdate",
       pwaAssets: {
         config: true,
-      },
-      workbox: {
-        mode: "development",
       },
       manifest: {
         id: "/",
@@ -26,12 +26,19 @@ export default defineConfig({
         theme_color: "#0284c7",
         background_color: "#f8fafc",
         share_target: {
-          action: "/",
-          method: "GET",
+          action: "/share-target",
+          method: "POST",
+          enctype: "multipart/form-data",
           params: {
             title: "title",
             text: "text",
             url: "url",
+            files: [
+              {
+                name: "images",
+                accept: ["image/jpeg", "image/png", "image/webp"],
+              },
+            ],
           },
         },
       },

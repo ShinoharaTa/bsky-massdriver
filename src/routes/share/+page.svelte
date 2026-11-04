@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { t } from "../../lib/i18n";
+  import { savePendingShare } from "../../lib/share/pendingShare";
 
   function composeShareText(title: string, text: string, url: string): string {
     const parts: string[] = [];
@@ -21,7 +22,7 @@
     return parts.join("\n");
   }
 
-  onMount(() => {
+  onMount(async () => {
     const searchParams = new URLSearchParams(window.location.search);
     const composed = composeShareText(
       searchParams.get("title") ?? "",
@@ -30,7 +31,11 @@
     );
 
     if (composed) {
-      sessionStorage.setItem("pendingShareText", composed);
+      try {
+        await savePendingShare({ text: composed, files: [] });
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     goto(composed ? `/?intent=${encodeURIComponent(composed)}` : "/", { replaceState: true });

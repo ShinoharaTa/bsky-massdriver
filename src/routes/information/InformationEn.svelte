@@ -71,8 +71,8 @@
       Choose "Add to Home Screen" or "Install app" from your browser menu to use it like a smartphone app.
     </p>
     <ul>
-      <li><strong>Android and PC (Chrome / Edge):</strong> Pick "Mass Driver" from the OS share menu to send the URL or text of the page you are viewing straight to the compose screen.</li>
-      <li><strong>iOS (Safari):</strong> Sending directly from the share menu is not supported, but you can use the "share URL" feature (a link with <code>?intent=</code>) to open the compose screen from things like a blog's share button.</li>
+      <li><strong>Android and PC (Chrome / Edge):</strong> Pick "Mass Driver" from the OS share menu to send the URL or text of the page you are viewing straight to the compose screen. You can also send images directly from the share menu of your photo or camera app (up to 4).</li>
+      <li><strong>iOS (Safari):</strong> Sending directly from the share menu (text or images) is not supported. Add images with the camera button or the image button on the compose screen. For text, you can use the "share URL" feature (a link with <code>?intent=</code>) to open the compose screen from things like a blog's share button.</li>
     </ul>
   </section>
 
