@@ -54,6 +54,23 @@ export const ja = {
   "compose.sending": "送信中...",
   "compose.templates": "テンプレート",
 
+  // 投稿画面の機能ガイド
+  "guide.title": "できること",
+  "guide.show": "機能ガイドを表示",
+  "guide.try": "試す",
+  "guide.copy": "コピー",
+  "guide.mention.label": "メンション",
+  "guide.mention.desc": "@ハンドルで相手に通知が届きます",
+  "guide.link.label": "リンク",
+  "guide.link.desc": "URL はリンクカードになります",
+  "guide.hashtag.label": "ハッシュタグ",
+  "guide.hashtag.desc": "# を付けるとタグになります",
+  "guide.image.label": "画像",
+  "guide.image.desc": "最大 4 枚、自動で縮小",
+  "guide.share.label": "シェアリンク",
+  "guide.share.desc": "今の入力内容を ?intent= 付き URL にして配れます",
+  "guide.more": "詳しい使い方 →",
+
   // 投稿一覧の項目
   "postItem.reply": "返信",
   "postItem.delete": "投稿を削除",

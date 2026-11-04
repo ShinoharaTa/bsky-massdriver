@@ -56,6 +56,23 @@ export const en: Record<keyof typeof ja, string> = {
   "compose.sending": "Sending...",
   "compose.templates": "Templates",
 
+  // Feature guide on the compose screen
+  "guide.title": "What you can do",
+  "guide.show": "Show feature guide",
+  "guide.try": "Try",
+  "guide.copy": "Copy",
+  "guide.mention.label": "Mention",
+  "guide.mention.desc": "@handle notifies that user",
+  "guide.link.label": "Link",
+  "guide.link.desc": "URLs become link cards",
+  "guide.hashtag.label": "Hashtag",
+  "guide.hashtag.desc": "Prefix with # to tag",
+  "guide.image.label": "Images",
+  "guide.image.desc": "Up to 4, resized automatically",
+  "guide.share.label": "Share link",
+  "guide.share.desc": "Turn your text into a ?intent= URL to share",
+  "guide.more": "Full guide →",
+
   // Post list item
   "postItem.reply": "Reply",
   "postItem.delete": "Delete post",

@@ -17,6 +17,7 @@
   import AccountFilterBar from "../components/AccountFilterBar.svelte";
   import TemplateMessage from "../components/TemplateMessage.svelte";
   import PostResultPanel from "../components/PostResultPanel.svelte";
+  import FeatureGuide from "../components/FeatureGuide.svelte";
   import { t } from "../lib/i18n";
 
   let isLoaded = false;
@@ -52,6 +53,9 @@
   let cursorEnd = 0;
   const DRAFT_KEY = "draftText";
   let draftTimer: ReturnType<typeof setTimeout>;
+  const GUIDE_DISMISSED_KEY = "guideDismissed";
+  let guideVisible =
+    typeof localStorage !== "undefined" && localStorage.getItem(GUIDE_DISMISSED_KEY) !== "1";
 
   function saveDraft() {
     clearTimeout(draftTimer);
@@ -165,6 +169,16 @@
 
   function dismissResults() {
     lastPostResults = [];
+  }
+
+  function dismissGuide() {
+    localStorage.setItem(GUIDE_DISMISSED_KEY, "1");
+    guideVisible = false;
+  }
+
+  function showGuide() {
+    localStorage.removeItem(GUIDE_DISMISSED_KEY);
+    guideVisible = true;
   }
 
   async function submitForm() {
@@ -440,6 +454,17 @@
       nextCursor = nextText.length;
     }
 
+    await applyTextWithCursor(nextText, nextCursor);
+  }
+
+  // Inserts at the last known cursor position (replacing the selection) and returns focus to the textarea
+  async function insertAtCursor(value: string) {
+    const start = Math.min(cursorStart, text.length);
+    const end = Math.min(Math.max(cursorEnd, start), text.length);
+    await applyTextWithCursor(`${text.slice(0, start)}${value}${text.slice(end)}`, start + value.length);
+  }
+
+  async function applyTextWithCursor(nextText: string, nextCursor: number) {
     text = nextText;
     await tick();
     textareaElement?.focus();
@@ -545,6 +570,7 @@
         <div class="secondary-actions">
           <button onclick={addTemplate} class="btn btn-ghost btn-sm btn-icon-only" title={$t("compose.saveTemplate")} aria-label={$t("compose.saveTemplate")}><Icon name="plus" size={14} /></button>
           <button onclick={copyPostUrl} class="btn btn-ghost btn-sm btn-icon-only" title={$t("compose.copyShareUrl")} aria-label={$t("compose.copyShareUrl")}><Icon name="external-link" size={14} /></button>
+          <button onclick={showGuide} class="btn btn-ghost btn-sm btn-icon-only" title={$t("guide.show")} aria-label={$t("guide.show")}><Icon name="help" size={14} /></button>
         </div>
       </div>
       <div class="primary-actions">
@@ -558,6 +584,10 @@
 
   {#if lastPostResults.length > 0}
     <PostResultPanel results={lastPostResults} onDismiss={dismissResults} />
+  {/if}
+
+  {#if guideVisible}
+    <FeatureGuide onInsert={insertAtCursor} onCopyShareUrl={copyPostUrl} onDismiss={dismissGuide} />
   {/if}
 
   <!-- Templates -->
