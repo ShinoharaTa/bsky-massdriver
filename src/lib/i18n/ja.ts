@@ -51,6 +51,7 @@ export const ja = {
   "compose.saveTemplate": "テンプレートに保存",
   "compose.copyShareUrl": "共有URLをコピー",
   "compose.attachImage": "画像を添付",
+  "compose.takePhoto": "カメラで撮影",
   "compose.sending": "送信中...",
   "compose.templates": "テンプレート",
 

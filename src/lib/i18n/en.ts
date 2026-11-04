@@ -53,6 +53,7 @@ export const en: Record<keyof typeof ja, string> = {
   "compose.saveTemplate": "Save as template",
   "compose.copyShareUrl": "Copy share URL",
   "compose.attachImage": "Attach images",
+  "compose.takePhoto": "Take a photo",
   "compose.sending": "Sending...",
   "compose.templates": "Templates",
 
