@@ -123,6 +123,8 @@ body {
   .btn-ghost { border: none; color: var(--muted); }
   .btn-ghost:hover { color: var(--text); }
 
+  .btn:disabled { opacity: 0.5; pointer-events: none; }
+
   .btn-attach { border-style: dashed; }
 
   .btn-icon-only {
