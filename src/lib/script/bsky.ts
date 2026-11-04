@@ -4,6 +4,7 @@ import { goto } from "$app/navigation";
 import { AtpAgent, RichText } from "@atproto/api";
 import type { AtpPersistSessionHandler, AtpSessionData } from "@atproto/api";
 import { setMessage } from "../../stores/MassDriver";
+import { translate } from "../i18n";
 import {
   readAccounts,
   writeAccounts,
@@ -402,7 +403,7 @@ export async function hasSession(): Promise<boolean> {
   const accounts = getStoredAccounts();
   if (!accounts.length) {
     setCurrentAccount(null);
-    setMessage("アカウントを追加してはじめましょう。", "info");
+    setMessage(translate("bsky.addAccountToStart"), "info");
     goto("/login");
     return false;
   }
@@ -411,7 +412,7 @@ export async function hasSession(): Promise<boolean> {
   const active = accounts.find((account) => account.id === activeId) ?? accounts[0];
   if (!active) {
     setCurrentAccount(null);
-    setMessage("アカウントを追加してはじめましょう。", "info");
+    setMessage(translate("bsky.addAccountToStart"), "info");
     goto("/login");
     return false;
   }
@@ -432,7 +433,7 @@ export async function hasSession(): Promise<boolean> {
     const remain = getStoredAccounts();
     if (!remain.length) {
       setCurrentAccount(null);
-      setMessage("セッションが期限切れになりました。アプリパスワードで再ログインしてください。", "warning");
+      setMessage(translate("bsky.sessionExpired"), "warning");
       goto("/login");
       return false;
     }
@@ -655,7 +656,10 @@ export async function postToBluesky(
         imageFiles.slice(0, 4).map(async ({ file, width, height, alt }) => {
           if (file.size > BSKY_IMAGE_MAX_BYTES) {
             throw new Error(
-              `Image too large after preprocessing: ${file.name} (${Math.round(file.size / 1024)}KB)`
+              translate("error.image.tooLargeAfterPreprocess", {
+                name: file.name,
+                size: Math.round(file.size / 1024),
+              })
             );
           }
           const buffer = new Uint8Array(await file.arrayBuffer());

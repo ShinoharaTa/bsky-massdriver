@@ -15,14 +15,15 @@
     type TimelineCursorByAccount,
   } from "../../lib/script/bsky";
   import { isLoading } from "../../stores/MassDriver";
+  import { t, type MessageKey } from "../../lib/i18n";
 
-  const reasonOptions: { key: AccountNotificationReason; label: string }[] = [
-    { key: "reply", label: "リプ" },
-    { key: "mention", label: "メンション" },
-    { key: "repost", label: "リポスト" },
-    { key: "like", label: "リアクション" },
-    { key: "quote", label: "引用" },
-    { key: "follow", label: "フォロー" },
+  const reasonOptions: { key: AccountNotificationReason; labelKey: MessageKey }[] = [
+    { key: "reply", labelKey: "notifications.filter.reply" },
+    { key: "mention", labelKey: "notifications.filter.mention" },
+    { key: "repost", labelKey: "notifications.filter.repost" },
+    { key: "like", labelKey: "notifications.filter.like" },
+    { key: "quote", labelKey: "notifications.filter.quote" },
+    { key: "follow", labelKey: "notifications.filter.follow" },
   ];
   const NOTIFICATIONS_PAGE_SIZE = 100;
   const groupableReasons = new Set<AccountNotificationReason>(["like", "repost", "quote"]);
@@ -189,18 +190,18 @@
 
 {#if isLoaded}
   <section class="page-intro">
-    <h2>通知</h2>
+    <h2>{$t("nav.notifications")}</h2>
   </section>
 
   <AccountFilterBar
     {accounts}
     {selectedAccountIds}
     toggleAccount={toggleAccount}
-    label="対象アカウント"
+    label={$t("notifications.accountLabel")}
   />
 
     <div class="section-title">
-      <span>通知タイプ</span>
+      <span>{$t("notifications.typeLabel")}</span>
       <span class="badge">{notificationFeed.length}</span>
   </div>
   <div class="reason-filter-bar">
@@ -210,14 +211,14 @@
         class:selected={selectedReasons.includes(option.key)}
         onclick={() => toggleReason(option.key)}
       >
-        {option.label}
+        {$t(option.labelKey)}
       </button>
     {/each}
   </div>
 
   {#if errors.length > 0}
     <section class="card error-panel">
-      <div class="section-title"><span>取得エラー</span></div>
+      <div class="section-title"><span>{$t("common.fetchError")}</span></div>
       {#each errors as error (`${error.accountId}:${error.error}`)}
         <p>@{error.handle}: {error.error}</p>
       {/each}
@@ -243,15 +244,15 @@
     </div>
   {:else}
     <section class="card empty-state">
-      <h3>表示できる通知がありません</h3>
-      <p>アカウント絞り込みか通知種別を変更するか、あとでもう一度読み込んでください。</p>
+      <h3>{$t("notifications.emptyTitle")}</h3>
+      <p>{$t("notifications.emptyBody")}</p>
     </section>
   {/if}
 
   {#if hasMore}
     <div class="load-more">
       <button class="btn btn-outline" onclick={loadMore} disabled={isLoadingMore}>
-        {isLoadingMore ? "読み込み中..." : "もっと見る"} <Icon name="chevron-down" size={16} />
+        {isLoadingMore ? $t("common.loading") : $t("common.loadMore")} <Icon name="chevron-down" size={16} />
       </button>
     </div>
   {/if}

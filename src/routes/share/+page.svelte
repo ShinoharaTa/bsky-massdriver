@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
+  import { t } from "../../lib/i18n";
 
   function composeShareText(title: string, text: string, url: string): string {
     const parts: string[] = [];
@@ -37,7 +38,7 @@
 </script>
 
 <div class="share-loading">
-  <p>共有内容を読み込んでいます…</p>
+  <p>{$t("share.loading")}</p>
 </div>
 
 <style>

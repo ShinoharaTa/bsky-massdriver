@@ -1,17 +1,18 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import { t, type MessageKey } from "../lib/i18n";
 
-  const items = [
-    { href: "/", label: "投稿" },
-    { href: "/notifications", label: "通知" },
-    { href: "/posts", label: "投稿管理" },
+  const items: { href: string; labelKey: MessageKey }[] = [
+    { href: "/", labelKey: "nav.post" },
+    { href: "/notifications", labelKey: "nav.notifications" },
+    { href: "/posts", labelKey: "nav.postsManage" },
   ];
 </script>
 
 <nav class="page-nav" aria-label="Primary">
   {#each items as item (item.href)}
     <a href={item.href} class:selected={page.url.pathname === item.href}>
-      {item.label}
+      {$t(item.labelKey)}
     </a>
   {/each}
 </nav>

@@ -17,6 +17,7 @@
   import AccountFilterBar from "../components/AccountFilterBar.svelte";
   import TemplateMessage from "../components/TemplateMessage.svelte";
   import PostResultPanel from "../components/PostResultPanel.svelte";
+  import { t } from "../lib/i18n";
 
   let isLoaded = false;
   let text = "";
@@ -171,15 +172,15 @@
     const postText = trimPostContent(text);
     if (!postText.length) return;
     if (!selectedAccountIds.length) {
-      setMessage("投稿先アカウントを1つ以上選択してください。", "warning");
+      setMessage($t("compose.selectAccount"), "warning");
       return;
     }
     if (hasProcessingAttachments) {
-      setMessage("画像の処理中です。完了までお待ちください。", "warning");
+      setMessage($t("compose.imageProcessing"), "warning");
       return;
     }
     if (hasErroredAttachments) {
-      setMessage("エラーのある画像を修正または削除してください。", "warning");
+      setMessage($t("compose.imageHasError"), "warning");
       return;
     }
 
@@ -208,7 +209,7 @@
 
       const successCount = results.filter((item) => item.success).length;
       if (successCount === results.length) {
-        setMessage(`投稿完了 (${successCount}/${results.length})`, "success");
+        setMessage($t("compose.postSuccess", { success: successCount, total: results.length }), "success");
         text = "";
         clearDraft();
         clearAttachments();
@@ -217,14 +218,17 @@
           .filter((item) => !item.success)
           .map((item) => `@${item.handle}`)
           .join(", ");
-        setMessage(`一部失敗: ${failedHandles} (${successCount}/${results.length} 成功)`, "warning");
+        setMessage(
+          $t("compose.postPartial", { handles: failedHandles, success: successCount, total: results.length }),
+          "warning"
+        );
       } else {
-        const reason = results[0]?.error ?? "不明なエラー";
-        setMessage(`投稿失敗: ${reason}`, "error");
+        const reason = results[0]?.error ?? $t("common.unknownError");
+        setMessage($t("compose.postFailed", { reason }), "error");
       }
     } catch (err) {
-      const reason = err instanceof Error ? err.message : "不明なエラー";
-      setMessage(`投稿失敗: ${reason}`, "error");
+      const reason = err instanceof Error ? err.message : $t("common.unknownError");
+      setMessage($t("compose.postFailed", { reason }), "error");
     } finally {
       isSubmitting = false;
       $isLoading = false;
@@ -235,7 +239,7 @@
     const postText = trimPostContent(text);
     const uri = encodeURIComponent(postText);
     navigator.clipboard.writeText(location.href + "?intent=" + uri);
-    setMessage("クリップボードにコピーしました。", "success");
+    setMessage($t("compose.copied"), "success");
   }
 
   function addTemplate() {
@@ -272,7 +276,7 @@
 
   function openImagePicker() {
     if (hasProcessingAttachments) {
-      setMessage("画像の処理が完了するまでお待ちください。", "warning");
+      setMessage($t("compose.waitImageProcessing"), "warning");
       return;
     }
     imageInput?.click();
@@ -285,7 +289,7 @@
 
     const incoming = files.slice(0, Math.max(0, 4 - attachments.length));
     if (incoming.length < files.length) {
-      setMessage("画像は最大4枚まで添付できます。", "warning");
+      setMessage($t("compose.imageLimit"), "warning");
     }
     const placeholders: AttachmentItem[] = incoming.map((file) => ({
       id: crypto.randomUUID(),
@@ -454,7 +458,7 @@
     {accounts}
     selectedAccountIds={selectedAccountIds}
     toggleAccount={toggleAccount}
-    label="投稿先"
+    label={$t("compose.target")}
   />
 
   <!-- Composer Card -->
@@ -470,7 +474,7 @@
     <textarea
       bind:this={textareaElement}
       bind:value={text}
-      placeholder="いまどうしてる？"
+      placeholder={$t("compose.placeholder")}
       oninput={() => { syncCursorFromTextarea(); saveDraft(); }}
       onclick={syncCursorFromTextarea}
       onkeyup={syncCursorFromTextarea}
@@ -498,7 +502,7 @@
               {#if attachment.status !== "processing"}
                 <button
                   class="image-thumb-remove"
-                  title="画像を削除"
+                  title={$t("compose.removeImage")}
                   onclick={() => removeAttachment(attachment.id)}
                 >
                   ×
@@ -507,7 +511,7 @@
             </div>
             <div class="image-meta">
               {#if attachment.status === "processing"}
-                <span class="image-badge">処理中...</span>
+                <span class="image-badge">{$t("compose.processing")}</span>
               {:else if attachment.status === "error"}
                 <span class="image-error">{attachment.errorMessage}</span>
               {:else}
@@ -539,14 +543,14 @@
           {charCount} / 300
         </span>
         <div class="secondary-actions">
-          <button onclick={addTemplate} class="btn btn-ghost btn-sm btn-icon-only" title="テンプレートに保存" aria-label="テンプレートに保存"><Icon name="plus" size={14} /></button>
-          <button onclick={copyPostUrl} class="btn btn-ghost btn-sm btn-icon-only" title="共有URLをコピー" aria-label="共有URLをコピー"><Icon name="external-link" size={14} /></button>
+          <button onclick={addTemplate} class="btn btn-ghost btn-sm btn-icon-only" title={$t("compose.saveTemplate")} aria-label={$t("compose.saveTemplate")}><Icon name="plus" size={14} /></button>
+          <button onclick={copyPostUrl} class="btn btn-ghost btn-sm btn-icon-only" title={$t("compose.copyShareUrl")} aria-label={$t("compose.copyShareUrl")}><Icon name="external-link" size={14} /></button>
         </div>
       </div>
       <div class="primary-actions">
-        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-icon-only" aria-label="画像を添付"><Icon name="image" size={16} /></button>
+        <button onclick={openImagePicker} class="btn btn-outline btn-sm btn-icon-only" aria-label={$t("compose.attachImage")}><Icon name="image" size={16} /></button>
         <button onclick={submitForm} class="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? "送信中..." : "Lift Off!"}
+          {isSubmitting ? $t("compose.sending") : "Lift Off!"}
         </button>
       </div>
     </div>
@@ -559,7 +563,7 @@
   <!-- Templates -->
   {#if templateMessages.length > 0}
     <div class="section-title">
-      <span>テンプレート</span>
+      <span>{$t("compose.templates")}</span>
       <span class="badge">{templateMessages.length}</span>
     </div>
     <section class="template-list">

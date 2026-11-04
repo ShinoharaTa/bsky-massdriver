@@ -4,12 +4,13 @@
   import { afterNavigate } from "$app/navigation";
   import Icon from "./Icon.svelte";
   import { getProfileForAccount, getStoredAccounts, type StoredAccount } from "../lib/script/bsky";
+  import { t, type MessageKey } from "../lib/i18n";
 
-  const navItems = [
-    { href: "/", icon: "post", label: "投稿" },
-    { href: "/notifications", icon: "bell", label: "通知" },
-    { href: "/posts", icon: "list", label: "管理" },
-    { href: "/account", icon: "user", label: "アカウント" },
+  const navItems: { href: string; icon: string; labelKey: MessageKey }[] = [
+    { href: "/", icon: "post", labelKey: "nav.post" },
+    { href: "/notifications", icon: "bell", labelKey: "nav.notifications" },
+    { href: "/posts", icon: "list", labelKey: "nav.manage" },
+    { href: "/account", icon: "user", labelKey: "nav.account" },
   ];
 
   let accounts: StoredAccount[] = $state([]);
@@ -50,13 +51,13 @@
     {#each navItems as item (item.href)}
       <a href={item.href} class="sidebar-nav-item" class:active={isActive(item.href)}>
         <span class="sidebar-nav-icon"><Icon name={item.icon} size={20} /></span>
-        {item.label}
+        {$t(item.labelKey)}
       </a>
     {/each}
   </nav>
 
   <div class="sidebar-footer-links">
-    <a href="/information" class="sidebar-footer-link">使い方</a>
+    <a href="/information" class="sidebar-footer-link">{$t("common.howToUse")}</a>
     <a href="https://github.com/ShinoharaTa/bsky-massdriver" target="_blank" rel="noreferrer" class="sidebar-footer-link">GitHub</a>
   </div>
 
@@ -79,7 +80,7 @@
     {/each}
     <button class="sidebar-account-add" onclick={() => goto("/account")}>
       <Icon name="plus" size={16} />
-      <span>追加</span>
+      <span>{$t("common.add")}</span>
     </button>
   </div>
 </aside>

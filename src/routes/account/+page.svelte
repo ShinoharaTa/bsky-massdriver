@@ -20,6 +20,7 @@
     DEFAULT_RELAYS,
   } from "../../lib/script/nostr";
   import { isLoading, setMessage } from "../../stores/MassDriver";
+  import { t } from "../../lib/i18n";
 
   let isLoaded = $state(false);
   let accounts: StoredAccount[] = $state([]);
@@ -70,7 +71,7 @@
       await login(bskyUsername, bskyPassword);
       bskyUsername = "";
       bskyPassword = "";
-      setMessage("Blueskyアカウントを追加しました", "success");
+      setMessage($t("account.blueskyAdded"), "success");
       await loadAccounts();
     } catch (error: any) {
       bskyError = String(error);
@@ -83,7 +84,7 @@
     try {
       nostrError = "";
       if (!nostrNsec.trim()) {
-        nostrError = "nsec を入力してください。";
+        nostrError = $t("common.nsecRequired");
         return;
       }
 
@@ -100,7 +101,7 @@
 
       addAccount(newAccount);
       nostrNsec = "";
-      setMessage("Nostrアカウントを追加しました", "success");
+      setMessage($t("account.nostrAdded"), "success");
       loadAccounts();
     } catch (error: any) {
       nostrError = String(error);
@@ -113,12 +114,12 @@
       .map((r) => r.trim())
       .filter((r) => r.startsWith("wss://"));
     if (relays.length === 0) {
-      setMessage("リレーURLを1つ以上入力してください。（wss://...）", "warning");
+      setMessage($t("account.relayRequired"), "warning");
       return;
     }
     setNostrRelays(relays);
     setNostrMediaServer(mediaServer.trim());
-    setMessage("Nostr設定を保存しました", "success");
+    setMessage($t("account.nostrSaved"), "success");
   }
 
   function resetNostrSettings() {
@@ -126,15 +127,15 @@
     relayText = DEFAULT_RELAYS.join("\n");
     setNostrMediaServer(MEDIA_SERVERS[0]);
     mediaServer = MEDIA_SERVERS[0];
-    setMessage("Nostr設定をデフォルトに戻しました", "success");
+    setMessage($t("account.nostrReset"), "success");
   }
 
   async function deleteAccount(accountId: string) {
-    const ok = window.confirm("このアカウントを削除しますか？");
+    const ok = window.confirm($t("account.confirmDelete"));
     if (!ok) return;
     removeStoredAccount(accountId);
     await loadAccounts();
-    setMessage("アカウントを削除しました", "success");
+    setMessage($t("account.deleted"), "success");
   }
 
   function platformLabel(account: StoredAccount): string {
@@ -146,12 +147,12 @@
 
 {#if isLoaded}
   <div class="page-intro">
-    <h2>アカウント</h2>
+    <h2>{$t("nav.account")}</h2>
   </div>
 
   {#if accounts.length > 0}
     <div class="section-title">
-      <span>登録済み</span>
+      <span>{$t("account.registered")}</span>
       <span class="badge">{accounts.length}/{MAX_ACCOUNTS}</span>
     </div>
     <div class="account-list">
@@ -169,10 +170,10 @@
               <span class="platform-badge" class:nostr={account.platform === "nostr"}>{platformLabel(account)}</span>
               @{account.handle}
             </div>
-            <div class="existing-account-status">保存済み</div>
+            <div class="existing-account-status">{$t("account.saved")}</div>
           </div>
           <div class="account-actions">
-            <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteAccount(account.id)} aria-label="アカウント削除">
+            <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteAccount(account.id)} aria-label={$t("account.deleteAccount")}>
               <Icon name="trash" size={16} />
             </button>
           </div>
@@ -181,7 +182,7 @@
     </div>
   {/if}
 
-  <div class="section-title" style="margin-top: 24px">アカウント追加</div>
+  <div class="section-title" style="margin-top: 24px">{$t("common.addAccount")}</div>
 
   <div class="mode-tabs">
     <button
@@ -200,7 +201,7 @@
     <div class="card" style="margin-top: 6px">
       <form onsubmit={(e) => { e.preventDefault(); handleBlueskyLogin(); }}>
         <div class="form-group">
-          <label for="handle">ハンドルまたは DID</label>
+          <label for="handle">{$t("account.handleOrDid")}</label>
           <input
             class="form-input"
             id="handle"
@@ -211,7 +212,7 @@
           />
         </div>
         <div class="form-group">
-          <label for="password">アプリパスワード</label>
+          <label for="password">{$t("common.appPassword")}</label>
           <input
             class="form-input"
             id="password"
@@ -226,9 +227,9 @@
         {/if}
         <div class="login-actions">
           <a href="https://bsky.app/settings/app-passwords" target="_blank" rel="noreferrer" class="help-link">
-            <Icon name="help" size={14} /> アプリパスワードとは？
+            <Icon name="help" size={14} /> {$t("account.whatIsAppPassword")}
           </a>
-          <button type="submit" class="btn btn-primary">ログイン</button>
+          <button type="submit" class="btn btn-primary">{$t("common.login")}</button>
         </div>
       </form>
     </div>
@@ -236,7 +237,7 @@
     <div class="card" style="margin-top: 6px">
       <form onsubmit={(e) => { e.preventDefault(); handleNostrAdd(); }}>
         <div class="form-group">
-          <label for="nsec">秘密鍵（nsec）</label>
+          <label for="nsec">{$t("common.nsecLabel")}</label>
           <input
             class="form-input"
             id="nsec"
@@ -246,7 +247,7 @@
             required
           />
           <p class="form-hint">
-            Nostrクライアントの設定画面でnsecを確認してください。この鍵はブラウザ内にのみ保存されます。
+            {$t("account.nsecHint")}
           </p>
         </div>
         {#if nostrError}
@@ -254,17 +255,17 @@
         {/if}
         <div class="login-actions">
           <span></span>
-          <button type="submit" class="btn btn-primary">追加</button>
+          <button type="submit" class="btn btn-primary">{$t("common.add")}</button>
         </div>
       </form>
     </div>
   {/if}
 
   {#if hasNostrAccounts}
-    <div class="section-title" style="margin-top: 24px">Nostr設定</div>
+    <div class="section-title" style="margin-top: 24px">{$t("account.nostrSettings")}</div>
     <div class="card" style="margin-top: 6px">
       <div class="form-group">
-        <label for="relays">投稿先リレー（1行1つ）</label>
+        <label for="relays">{$t("account.relays")}</label>
         <textarea
           class="form-input relay-textarea"
           id="relays"
@@ -274,7 +275,7 @@
         ></textarea>
       </div>
       <div class="form-group">
-        <label for="media-server">画像投稿先サーバー（NIP-96）</label>
+        <label for="media-server">{$t("account.mediaServer")}</label>
         <select class="form-input" id="media-server" bind:value={mediaServer}>
           {#each MEDIA_SERVERS as server}
             <option value={server}>{new URL(server).hostname}</option>
@@ -282,20 +283,20 @@
         </select>
       </div>
       <p class="form-hint">
-        すべてのNostrアカウントで共通の設定です。この端末のブラウザに保存されます。
+        {$t("account.nostrSettingsHint")}
       </p>
       <div class="settings-actions">
-        <button class="btn btn-outline btn-sm" onclick={resetNostrSettings}>デフォルトに戻す</button>
-        <button class="btn btn-primary btn-sm" onclick={saveNostrSettings}>保存</button>
+        <button class="btn btn-outline btn-sm" onclick={resetNostrSettings}>{$t("account.resetDefault")}</button>
+        <button class="btn btn-primary btn-sm" onclick={saveNostrSettings}>{$t("common.save")}</button>
       </div>
     </div>
   {/if}
 
-  <div class="section-title" style="margin-top: 24px">ヘルプ / その他</div>
+  <div class="section-title" style="margin-top: 24px">{$t("account.helpOther")}</div>
   <div class="help-links">
     <a href="/information" class="help-link-item">
       <Icon name="info" size={16} />
-      <span>使い方ガイド</span>
+      <span>{$t("account.guide")}</span>
     </a>
     <a href="https://github.com/ShinoharaTa/bsky-massdriver" target="_blank" rel="noreferrer" class="help-link-item">
       <Icon name="external-link" size={16} />
@@ -303,7 +304,7 @@
     </a>
     <a href="https://github.com/ShinoharaTa/bsky-massdriver/issues" target="_blank" rel="noreferrer" class="help-link-item">
       <Icon name="help" size={16} />
-      <span>不具合報告・要望</span>
+      <span>{$t("account.feedback")}</span>
     </a>
   </div>
 {/if}

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { MultiPostResult } from "../lib/script/bsky";
   import Icon from "./Icon.svelte";
+  import { t } from "../lib/i18n";
 
   let {
     results,
@@ -16,7 +17,7 @@
 
 <div class="post-result-panel">
   <div class="section-title">
-    <span>投稿結果</span>
+    <span>{$t("postResult.title")}</span>
     <span class="badge" class:badge-ok={allSuccess} class:badge-warn={!allSuccess}>
       {successCount}/{results.length}
     </span>
@@ -30,12 +31,12 @@
         </span>
         {#if result.success}
           <span class="result-tag ok">
-            <Icon name="check" size={12} /> 成功
+            <Icon name="check" size={12} /> {$t("postResult.success")}
           </span>
         {:else}
           <div class="result-fail-group">
             <span class="result-tag fail">
-              <Icon name="alert" size={12} /> 失敗
+              <Icon name="alert" size={12} /> {$t("postResult.failure")}
             </span>
             {#if result.error}
               <span class="result-error-detail">{result.error}</span>
@@ -46,7 +47,7 @@
     {/each}
   </div>
   <div class="result-actions">
-    <button class="btn btn-outline btn-sm" onclick={onDismiss}>閉じる</button>
+    <button class="btn btn-outline btn-sm" onclick={onDismiss}>{$t("common.close")}</button>
   </div>
 </div>
 

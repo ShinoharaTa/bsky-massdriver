@@ -1,5 +1,6 @@
 import { browser } from "$app/environment";
 import type { AtpSessionData } from "@atproto/api";
+import { translate } from "../i18n";
 
 export type Platform = "bluesky" | "nostr";
 
@@ -105,7 +106,7 @@ export function addAccount(account: StoredAccount): void {
   const existing = readAccounts();
   const isNew = !existing.some((a) => a.id === account.id);
   if (isNew && existing.length >= MAX_ACCOUNTS) {
-    throw new Error(`登録できるアカウントは最大${MAX_ACCOUNTS}件です。不要なアカウントを削除してください。`);
+    throw new Error(translate("error.accounts.limit", { max: MAX_ACCOUNTS }));
   }
   const current = existing.filter((a) => a.id !== account.id);
   writeAccounts([...current, account]);

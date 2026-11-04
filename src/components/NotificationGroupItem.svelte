@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { AccountNotification, AccountNotificationReason } from "../lib/script/bsky";
   import Icon from "./Icon.svelte";
+  import { dateLocale, locale, t, type MessageKey } from "../lib/i18n";
 
   let {
     items,
@@ -30,23 +31,28 @@
     unknown: "bell",
   };
 
-  const labelMap: Record<AccountNotificationReason, string> = {
-    reply: "リプライ",
-    mention: "メンション",
-    repost: "リポスト",
-    like: "リアクション",
-    quote: "引用",
-    follow: "フォロー",
-    unknown: "通知",
+  const countKeyMap: Record<AccountNotificationReason, MessageKey> = {
+    reply: "notification.group.reply",
+    mention: "notification.group.mention",
+    repost: "notification.group.repost",
+    like: "notification.group.like",
+    quote: "notification.group.quote",
+    follow: "notification.group.follow",
+    unknown: "notification.group.unknown",
   };
 
-  function formatDate(value: string) {
-    return new Intl.DateTimeFormat("ja-JP", {
+  // Rebuilt when $locale changes
+  const dateFormatter = $derived(
+    new Intl.DateTimeFormat(dateLocale($locale), {
       month: "numeric",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    }).format(new Date(value));
+    })
+  );
+
+  function formatDate(value: string) {
+    return dateFormatter.format(new Date(value));
   }
 
   function detailPreview(item: AccountNotification) {
@@ -74,14 +80,14 @@
             {/if}
           {/each}
         </div>
-        <span class="notif-action">{items.length}件の{labelMap[reason]}</span>
+        <span class="notif-action">{$t(countKeyMap[reason], { count: items.length })}</span>
         <span class="notif-meta">@{accountHandle} · {formatDate(indexedAt)}</span>
       </div>
       <button
         class="btn btn-ghost btn-sm btn-icon-only notif-expand"
         type="button"
         aria-expanded={isExpanded}
-        aria-label={isExpanded ? "一覧を閉じる" : "一覧を展開する"}
+        aria-label={isExpanded ? $t("notification.collapse") : $t("notification.expand")}
         onclick={() => (isExpanded = !isExpanded)}
       >
         <Icon name="chevron-down" size={16} class={isExpanded ? "expanded" : ""} />

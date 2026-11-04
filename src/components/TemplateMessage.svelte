@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from "./Icon.svelte";
+  import { t } from "../lib/i18n";
 
   let {
     item,
@@ -15,8 +16,8 @@
 <article class="template-item">
   <button class="template-text" onclick={() => setText(item.text)}>{item.text}</button>
   <div class="template-actions">
-    <button class="btn btn-ghost btn-sm btn-icon-only" title="使用する" onclick={() => setText(item.text)}><Icon name="corner-down-left" size={16} /></button>
-    <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteTemplateItem(item.key)} aria-label="削除"><Icon name="trash" size={16} /></button>
+    <button class="btn btn-ghost btn-sm btn-icon-only" title={$t("template.use")} onclick={() => setText(item.text)}><Icon name="corner-down-left" size={16} /></button>
+    <button class="btn btn-ghost btn-sm btn-icon-only" onclick={() => deleteTemplateItem(item.key)} aria-label={$t("common.delete")}><Icon name="trash" size={16} /></button>
   </div>
 </article>
 

@@ -1,12 +1,13 @@
 <script lang="ts">
   import { page } from "$app/state";
   import Icon from "./Icon.svelte";
+  import { t, type MessageKey } from "../lib/i18n";
 
-  const navItems = [
-    { href: "/", icon: "post", label: "投稿" },
-    { href: "/notifications", icon: "bell", label: "通知" },
-    { href: "/posts", icon: "list", label: "管理" },
-    { href: "/account", icon: "user", label: "アカウント" },
+  const navItems: { href: string; icon: string; labelKey: MessageKey }[] = [
+    { href: "/", icon: "post", labelKey: "nav.post" },
+    { href: "/notifications", icon: "bell", labelKey: "nav.notifications" },
+    { href: "/posts", icon: "list", labelKey: "nav.manage" },
+    { href: "/account", icon: "user", labelKey: "nav.account" },
   ];
 
   function isActive(href: string) {
@@ -20,7 +21,7 @@
     {#each navItems as item (item.href)}
       <a href={item.href} class="bottom-nav-item" class:active={isActive(item.href)}>
         <span class="nav-icon"><Icon name={item.icon} size={20} /></span>
-        <span>{item.label}</span>
+        <span>{$t(item.labelKey)}</span>
       </a>
     {/each}
   </div>
