@@ -1,4 +1,5 @@
 import { BSKY_IMAGE_MAX_BYTES, BSKY_IMAGE_MAX_DIMENSION } from "./bsky";
+import { translate } from "../i18n";
 
 const SUPPORTED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -58,7 +59,7 @@ export async function preprocessImage(
   if (!SUPPORTED_IMAGE_TYPES.has(file.type)) {
     return {
       ok: false,
-      error: "JPEG / PNG / WebP のみ対応しています。",
+      error: translate("error.image.unsupported"),
       width: 0,
       height: 0,
       bytes: file.size,
@@ -93,7 +94,7 @@ export async function preprocessImage(
     if (!canvas) {
       return {
         ok: false,
-        error: "画像処理に失敗しました。",
+        error: translate("error.image.processFailed"),
         width,
         height,
         bytes: file.size,
@@ -105,7 +106,7 @@ export async function preprocessImage(
       if (!pngBlob) {
         return {
           ok: false,
-          error: "PNG の変換に失敗しました。",
+          error: translate("error.image.pngConvertFailed"),
           width,
           height,
           bytes: file.size,
@@ -116,7 +117,7 @@ export async function preprocessImage(
         if (!jpegCanvas) {
           return {
             ok: false,
-            error: "PNG の JPEG 変換に失敗しました。",
+            error: translate("error.image.pngToJpegFailed"),
             width,
             height,
             bytes: pngBlob.size,
@@ -137,7 +138,7 @@ export async function preprocessImage(
         }
         return {
           ok: false,
-          error: `PNG は JPEG 変換後も上限 ${formatKB(maxBytes)}KB に収まりませんでした。`,
+          error: translate("error.image.pngTooLarge", { maxKB: formatKB(maxBytes) }),
           width,
           height,
           bytes: pngBlob.size,
@@ -176,7 +177,7 @@ export async function preprocessImage(
 
     return {
       ok: false,
-      error: `${mimeLabel(file.type)} は縮小・圧縮後も上限 ${formatKB(maxBytes)}KB に収まりませんでした。`,
+      error: translate("error.image.tooLarge", { label: mimeLabel(file.type), maxKB: formatKB(maxBytes) }),
       width,
       height,
       bytes: file.size,
@@ -234,7 +235,7 @@ async function loadImage(file: File): Promise<LoadedImage> {
   const image = await new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("画像を読み込めませんでした。"));
+    img.onerror = () => reject(new Error(translate("error.image.loadFailed")));
     img.src = objectUrl;
   });
 
@@ -288,5 +289,5 @@ export function mimeLabel(type: string) {
   if (type === "image/jpeg") return "JPEG";
   if (type === "image/webp") return "WebP";
   if (type === "image/png") return "PNG";
-  return "画像";
+  return translate("image.generic");
 }

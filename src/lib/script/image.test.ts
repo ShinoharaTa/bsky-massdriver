@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fitWithinBounds, renameFileExtension, formatKB, mimeLabel } from "./image";
+import { locale, translate } from "../i18n";
 
 describe("fitWithinBounds", () => {
   it("returns original dimensions when within bounds", () => {
@@ -81,6 +82,7 @@ describe("mimeLabel", () => {
   });
 
   it("returns fallback for unknown types", () => {
-    expect(mimeLabel("image/gif")).toBe("画像");
+    locale.set("ja");
+    expect(mimeLabel("image/gif")).toBe(translate("image.generic"));
   });
 });

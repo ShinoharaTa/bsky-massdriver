@@ -7,6 +7,7 @@ import type { NostrStoredAccount } from "./accounts";
 import { readAccounts, writeAccounts, isNostrAccount } from "./accounts";
 import type { MultiPostResult, PostImageInput } from "./bsky";
 import { uploadToNip96 } from "./nip96";
+import { translate } from "../i18n";
 
 export const DEFAULT_RELAYS = [
   "wss://relay-jp.nostr.wirednet.jp/",
@@ -228,7 +229,7 @@ export async function postToNostr(
       const firstError = publishResults.find(
         (r): r is PromiseRejectedResult => r.status === "rejected"
       );
-      throw new Error(firstError?.reason?.message ?? "全てのリレーへの送信に失敗しました");
+      throw new Error(firstError?.reason?.message ?? translate("error.nostr.allRelaysFailed"));
     }
 
     return {

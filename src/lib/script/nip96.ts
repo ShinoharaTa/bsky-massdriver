@@ -1,4 +1,5 @@
 import { finalizeEvent } from "nostr-tools";
+import { translate } from "../i18n";
 
 const NIP98_AUTH_KIND = 27235;
 const PROCESSING_TIMEOUT_SECONDS = 60;
@@ -22,7 +23,7 @@ async function fetchNip96Info(origin: string): Promise<Nip96Info> {
   url.pathname = "/.well-known/nostr/nip96.json";
   const response = await fetch(url.toString());
   if (!response.ok) {
-    throw new Error(`NIP-96 情報の取得に失敗しました (${response.status})`);
+    throw new Error(translate("error.nip96.infoFailed", { status: response.status }));
   }
   return (await response.json()) as Nip96Info;
 }
@@ -58,7 +59,7 @@ export async function uploadToNip96(
 ): Promise<string> {
   const nip96Info = await fetchNip96Info(serverUrl);
   if (!nip96Info.api_url) {
-    throw new Error("NIP-96: api_url が見つかりません");
+    throw new Error(translate("error.nip96.apiUrlMissing"));
   }
 
   const apiUrl = nip96Info.api_url;
@@ -79,7 +80,10 @@ export async function uploadToNip96(
   if (!response.ok) {
     const errorText = await response.text().catch(() => "");
     throw new Error(
-      `NIP-96 アップロード失敗 (${response.status}): ${errorText || response.statusText}`
+      translate("error.nip96.uploadFailed", {
+        status: response.status,
+        detail: errorText || response.statusText,
+      })
     );
   }
 
@@ -91,7 +95,7 @@ export async function uploadToNip96(
 
   const url = findTag(data.nip94_event?.tags ?? [], "url");
   if (!url) {
-    throw new Error("NIP-96: サーバーからURLが返されませんでした");
+    throw new Error(translate("error.nip96.noUrl"));
   }
   return url;
 }
@@ -113,7 +117,7 @@ async function waitForProcessing(
 
     if (!res.ok) {
       throw new Error(
-        `NIP-96 処理状態の確認に失敗 (${res.status})`
+        translate("error.nip96.statusFailed", { status: res.status })
       );
     }
 
@@ -122,18 +126,22 @@ async function waitForProcessing(
     if (data.status === "success") {
       const url = findTag(data.nip94_event?.tags ?? [], "url");
       if (!url) {
-        throw new Error("NIP-96: 処理完了後のURLが見つかりません");
+        throw new Error(translate("error.nip96.noProcessedUrl"));
       }
       return url;
     }
 
     if (data.status === "error") {
-      throw new Error(`NIP-96 処理エラー: ${data.message ?? "不明なエラー"}`);
+      throw new Error(
+        translate("error.nip96.processingError", {
+          reason: data.message ?? translate("common.unknownError"),
+        })
+      );
     }
 
     const elapsed = Math.floor(Date.now() / 1000) - startTime;
     if (elapsed > PROCESSING_TIMEOUT_SECONDS) {
-      throw new Error("NIP-96: アップロード処理がタイムアウトしました");
+      throw new Error(translate("error.nip96.timeout"));
     }
 
     await new Promise((resolve) => setTimeout(resolve, PROCESSING_POLL_MS));
